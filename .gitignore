@@ -1,2 +1,7 @@
 Makefile
-*.hdf5
+output/*
+__pycache__
+__pycache__/*
+.vscode
+.vscode/*
+*.mid
