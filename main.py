@@ -9,6 +9,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout, Activation
 from tensorflow.keras.callbacks import ModelCheckpoint
 
+import utils
+
 def convert_midi(path):
   midi = m21.converter.parse(path)
   parts = m21.instrument.partitionByInstrument(midi)
@@ -34,7 +36,7 @@ pool = mp.Pool(mp.cpu_count())
 # songs = pool.map(convert_midi, midi_files)
 # print('Done')
 
-songs = [convert_midi('./midis/VGM/tears.mid') + convert_midi('./midis/VGM/green.mid') + convert_midi('./midis/VGM/dirth.mid')]
+songs = [convert_midi('./midis/VGM/tears.mid')]
 
 def train_for_song(notes):
   pitches = sorted(set(notes))
@@ -43,7 +45,7 @@ def train_for_song(notes):
   unique_notes_count = len(note_to_int.keys())
 
   print('Song length ' + str(len(notes)))
-  sequence_length = 3
+  sequence_length = 30
 
   network_input = []
   network_output = []
@@ -63,74 +65,18 @@ def train_for_song(notes):
   network_input = network_input / float(unique_notes_count) # normalize input
   network_output = to_categorical(network_output) # convert the vector to a binary matrix
 
-  model = Sequential()
-  model.add(LSTM(
-    256,
-    input_shape=(network_input.shape[1], network_input.shape[2]),
-    return_sequences=True
-  ))
-  model.add(Dropout(0.3))
-  model.add(LSTM(512, return_sequences=True))
-  model.add(Dropout(0.3))
-  model.add(LSTM(256))
-  model.add(Dense(256))
-  model.add(Dropout(0.3))
-  model.add(Dense(unique_notes_count))
-  model.add(Activation('softmax'))
-  model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
-
-  filepath = "./output/weights.hdf5"
-  callbacks_list = [ModelCheckpoint(
-    filepath,
-    monitor='loss',
-    save_freq='epoch', # save after every epoch
-    verbose=0,
-    save_best_only=True, # save only if the model is better than in the previous iteration
-    mode='min' # set to min because loss is being monitored
-  )]
+  model, callbacks = utils.create_model(
+    (network_input.shape[1], network_input.shape[2]),
+    unique_notes_count
+  )
 
   # start training
-  model.fit(network_input, network_output, epochs=100, callbacks=callbacks_list)
+  model.fit(network_input, network_output, epochs=100, callbacks=callbacks, batch_size=64)
 
   # training finished, generate output song
-
   int_to_note = dict((number, note) for number, note in enumerate(pitches))
-
-  pattern = network_input[np.random.randint(0, len(network_input) - 1)] # pick a random note to start
-  prediction_output = []
-
-  for note_index in range(500):
-    # reshape and normalize
-    prediction_input = np.reshape(pattern, (1, len(pattern), 1)) / float(unique_notes_count)
-    prediction = model.predict(prediction_input, verbose=0)
-    index = np.argmax(prediction)
-    result = int_to_note[index]
-    prediction_output.append(result)
-    # pattern.append(index) # doesnt work
-    pattern = np.append(pattern, index)
-    pattern = pattern[1 : len(pattern)]
-
-  offset = 0
-  output_notes = []
+  prediction_output = utils.construct_song(model, network_input, int_to_note) # predict notes in the new song
   print(prediction_output)
-  for pattern in prediction_output:
-    if '.' in pattern: # pattern is a chord
-      notes = []
-      for current_note in pattern.split('.'):
-        new_note = m21.note.Note(current_note)
-        new_note.storedInstrument = m21.instrument.Piano()
-        notes.append(new_note)
-      new_chord = m21.chord.Chord(notes)
-      new_chord.offset = offset
-      output_notes.append(new_chord)
-    else: # pattern is a note
-      new_note = m21.note.Note(pattern)
-      new_note.offset = offset
-      new_note.storedInstrument = m21.instrument.Piano()
-      output_notes.append(new_note)
-    offset += 0.5
-
-  midi_stream = m21.stream.Stream(output_notes)
-  midi_stream.write('midi', fp='output.mid')
+  utils.generate_midi(prediction_output) # convert output to a .mid file
 
 train_for_song(songs[0])
