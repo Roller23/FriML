@@ -11,72 +11,74 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 
 import utils
 
-def convert_midi(path):
-  midi = m21.converter.parse(path)
-  parts = m21.instrument.partitionByInstrument(midi)
-  track = None
-  if parts:
-    track = parts.parts[0] if len(parts.parts[0].pitches) > 0 else parts.parts[1]
-  else:
-    track = midi.flat.notes
-  notes = []
-  for event in track:
-    if isinstance(event, m21.note.Note):
-      notes.append(str(event.pitch))
-    elif isinstance(event, m21.chord.Chord):
-      notes.append('.'.join(str(n) for n in event.pitches))
-  print('Converted ' + path)
-  return notes
+if __name__ == '__main__':
 
-pool = mp.Pool(mp.cpu_count())
+  def convert_midi(path):
+    midi = m21.converter.parse(path)
+    parts = m21.instrument.partitionByInstrument(midi)
+    track = None
+    if parts:
+      track = parts.parts[0] if len(parts.parts[0].pitches) > 0 else parts.parts[1]
+    else:
+      track = midi.flat.notes
+    notes = []
+    for event in track:
+      if isinstance(event, m21.note.Note):
+        notes.append(str(event.pitch))
+      elif isinstance(event, m21.chord.Chord):
+        notes.append('.'.join(str(n) for n in event.pitches))
+    print('Converted ' + path)
+    return notes
 
-# midis_folder = './midis/VGM/'
-# midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
-# print('Converting midis...')
-# songs = pool.map(convert_midi, midi_files)
-# print('Done')
+  pool = mp.Pool(mp.cpu_count())
 
-songs = [convert_midi('./midis/VGM/tears.mid')]
+  # midis_folder = './midis/VGM/'
+  # midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
+  # print('Converting midis...')
+  # songs = pool.map(convert_midi, midi_files)
+  # print('Done')
 
-def train_for_song(notes):
-  pitches = sorted(set(notes))
-  note_to_int = dict((note, number) for number, note in enumerate(pitches))
+  songs = [convert_midi('./midis/VGM/tears.mid') + convert_midi('./midis/VGM/green.mid') + convert_midi('./midis/VGM/dirth.mid')]
 
-  unique_notes_count = len(note_to_int.keys())
+  def train_for_song(notes):
+    pitches = sorted(set(notes))
+    note_to_int = dict((note, number) for number, note in enumerate(pitches))
 
-  print('Song length ' + str(len(notes)))
-  sequence_length = 30
+    unique_notes_count = len(note_to_int.keys())
 
-  network_input = []
-  network_output = []
+    print('Song length ' + str(len(notes)))
+    sequence_length = 100
 
-  for i in range(0, len(notes) - sequence_length, 1):
-    sequence_in = notes[i : i + sequence_length] # s_l notes starting from i offset
-    sequence_out = notes[i + sequence_length] # current note + s_l
-    # map strings to numbers
-    network_input.append([note_to_int[char] for char in sequence_in])
-    network_output.append(note_to_int[sequence_out])
+    network_input = []
+    network_output = []
 
-  patterns_count = len(network_input)
+    for i in range(0, len(notes) - sequence_length, 1):
+      sequence_in = notes[i : i + sequence_length] # s_l notes starting from i offset
+      sequence_out = notes[i + sequence_length] # current note + s_l
+      # map strings to numbers
+      network_input.append([note_to_int[char] for char in sequence_in])
+      network_output.append(note_to_int[sequence_out])
 
-  # reshape the input into a format compatible with LSTM layers
-  network_input = np.reshape(network_input, (patterns_count, sequence_length, 1))
-  # normalize input
-  network_input = network_input / float(unique_notes_count) # normalize input
-  network_output = to_categorical(network_output) # convert the vector to a binary matrix
+    patterns_count = len(network_input)
 
-  model, callbacks = utils.create_model(
-    (network_input.shape[1], network_input.shape[2]),
-    unique_notes_count
-  )
+    # reshape the input into a format compatible with LSTM layers
+    network_input = np.reshape(network_input, (patterns_count, sequence_length, 1))
+    # normalize input
+    network_input = network_input / float(unique_notes_count) # normalize input
+    network_output = to_categorical(network_output) # convert the vector to a binary matrix
 
-  # start training
-  model.fit(network_input, network_output, epochs=100, callbacks=callbacks, batch_size=64)
+    model, callbacks = utils.create_model(
+      (network_input.shape[1], network_input.shape[2]),
+      unique_notes_count
+    )
 
-  # training finished, generate output song
-  int_to_note = dict((number, note) for number, note in enumerate(pitches))
-  prediction_output = utils.construct_song(model, network_input, int_to_note) # predict notes in the new song
-  print(prediction_output)
-  utils.generate_midi(prediction_output) # convert output to a .mid file
+    # start training
+    model.fit(network_input, network_output, epochs=300, callbacks=callbacks, batch_size=64)
 
-train_for_song(songs[0])
+    # training finished, generate output song
+    int_to_note = dict((number, note) for number, note in enumerate(pitches))
+    prediction_output = utils.construct_song(model, network_input, int_to_note, length=500) # predict notes in the new song
+    print(prediction_output)
+    utils.generate_midi(prediction_output) # convert output to a .mid file
+
+  train_for_song(songs[0])
