@@ -80,3 +80,20 @@ def generate_midi(notes, output='output.mid'):
 
   midi_stream = m21.stream.Stream(output_notes)
   midi_stream.write('midi', fp=output)
+
+def convert_midi(path):
+  midi = m21.converter.parse(path)
+  parts = m21.instrument.partitionByInstrument(midi)
+  track = None
+  if parts:
+    track = parts.parts[0] if len(parts.parts[0].pitches) > 0 else parts.parts[1]
+  else:
+    track = midi.flat.notes
+  notes = []
+  for event in track:
+    if isinstance(event, m21.note.Note):
+      notes.append(str(event.pitch))
+    elif isinstance(event, m21.chord.Chord):
+      notes.append('.'.join(str(n) for n in event.pitches))
+  print('Converted ' + path)
+  return notes

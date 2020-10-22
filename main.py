@@ -2,45 +2,27 @@ import os
 import numpy as np
 import music21 as m21
 import tensorflow as tf
-from functools import reduce
 from tensorflow import keras
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout, Activation
 from tensorflow.keras.callbacks import ModelCheckpoint
 
-import utils
-
 if __name__ == '__main__':
 
-  def convert_midi(path):
-    midi = m21.converter.parse(path)
-    parts = m21.instrument.partitionByInstrument(midi)
-    track = None
-    if parts:
-      track = parts.parts[0] if len(parts.parts[0].pitches) > 0 else parts.parts[1]
-    else:
-      track = midi.flat.notes
-    notes = []
-    for event in track:
-      if isinstance(event, m21.note.Note):
-        notes.append(str(event.pitch))
-      elif isinstance(event, m21.chord.Chord):
-        notes.append('.'.join(str(n) for n in event.pitches))
-    print('Converted ' + path)
-    return notes
+  import utils
 
   midis_folder = './midis/Nottingham/train/'
   midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
   midi_files = list(filter(lambda f: 'ashover_simple_chords' in f, midi_files)) # train only on chord files
-  print(midi_files)
   print('Converting midis...')
   track = []
   for file in midi_files:
-    track = track + convert_midi(file)
-  print('Done')
+    track = track + utils.convert_midi(file)
+  
+  # track = utils.convert_midi('./midis/VGM/green.mid') # a single track
 
-  # track = convert_midi('./midis/VGM/green.mid')
+  print('Done')
 
   def train_for_song(notes):
     pitches = sorted(set(notes))
@@ -48,7 +30,6 @@ if __name__ == '__main__':
 
     unique_notes_count = len(note_to_int.keys())
 
-    print('Song length ' + str(len(notes)))
     sequence_length = 30
 
     network_input = []
@@ -81,7 +62,7 @@ if __name__ == '__main__':
     # training finished, generate output song
     int_to_note = dict((number, note) for number, note in enumerate(pitches))
     prediction_output = utils.construct_song(model, network_input, int_to_note, length=500) # predict notes in the new song
-    print(prediction_output)
+    print('Generated notes\n', prediction_output)
     utils.generate_midi(prediction_output) # convert output to a .mid file
 
   train_for_song(track)
