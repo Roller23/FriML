@@ -1,5 +1,4 @@
 import os
-import sys
 import numpy as np
 import music21 as m21
 import tensorflow as tf
@@ -50,7 +49,7 @@ if __name__ == '__main__':
     unique_notes_count = len(note_to_int.keys())
 
     print('Song length ' + str(len(notes)))
-    sequence_length = 50
+    sequence_length = 30
 
     network_input = []
     network_output = []
@@ -72,7 +71,8 @@ if __name__ == '__main__':
 
     model, callbacks = utils.create_model(
       (network_input.shape[1], network_input.shape[2]),
-      unique_notes_count
+      unique_notes_count,
+      loss_dest=2.0
     )
 
     # start training

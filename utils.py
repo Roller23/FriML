@@ -7,7 +7,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout, Activation
 from tensorflow.keras.callbacks import ModelCheckpoint
 
-def create_model(shape, density, filename="./output/weights.hdf5"):
+def create_model(shape, density, filename="./output/weights.hdf5", loss_dest=0.0001):
   print('shape', shape)
   model = Sequential()
   model.add(LSTM(
@@ -32,6 +32,13 @@ def create_model(shape, density, filename="./output/weights.hdf5"):
     save_best_only=True, # save only if the model is better than in the previous iteration
     mode='min' # set to min because loss is being monitored
   )]
+  class haltCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs={}):
+      if (logs.get('loss') <= loss_dest): # stop at certain loss
+        print("\nReached predefined loss, training finished early\n")
+        self.model.stop_training = True
+  trainingStopCallback = haltCallback()
+  callbacks_list.append(trainingStopCallback)
   return (model, callbacks_list)
 
 def construct_song(model, network_input, int_lut, length=200):
