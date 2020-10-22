@@ -1,8 +1,9 @@
 import os
+import sys
 import numpy as np
-import multiprocessing as mp
 import music21 as m21
 import tensorflow as tf
+from functools import reduce
 from tensorflow import keras
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
@@ -30,15 +31,17 @@ if __name__ == '__main__':
     print('Converted ' + path)
     return notes
 
-  pool = mp.Pool(mp.cpu_count())
+  midis_folder = './midis/Nottingham/train/'
+  midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
+  midi_files = list(filter(lambda f: 'ashover_simple_chords' in f, midi_files)) # train only on chord files
+  print(midi_files)
+  print('Converting midis...')
+  track = []
+  for file in midi_files:
+    track = track + convert_midi(file)
+  print('Done')
 
-  # midis_folder = './midis/VGM/'
-  # midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
-  # print('Converting midis...')
-  # songs = pool.map(convert_midi, midi_files)
-  # print('Done')
-
-  songs = [convert_midi('./midis/VGM/tears.mid') + convert_midi('./midis/VGM/green.mid') + convert_midi('./midis/VGM/dirth.mid')]
+  # track = convert_midi('./midis/VGM/green.mid')
 
   def train_for_song(notes):
     pitches = sorted(set(notes))
@@ -47,7 +50,7 @@ if __name__ == '__main__':
     unique_notes_count = len(note_to_int.keys())
 
     print('Song length ' + str(len(notes)))
-    sequence_length = 100
+    sequence_length = 50
 
     network_input = []
     network_output = []
@@ -73,7 +76,7 @@ if __name__ == '__main__':
     )
 
     # start training
-    model.fit(network_input, network_output, epochs=300, callbacks=callbacks, batch_size=64)
+    model.fit(network_input, network_output, epochs=50, callbacks=callbacks, batch_size=64)
 
     # training finished, generate output song
     int_to_note = dict((number, note) for number, note in enumerate(pitches))
@@ -81,4 +84,4 @@ if __name__ == '__main__':
     print(prediction_output)
     utils.generate_midi(prediction_output) # convert output to a .mid file
 
-  train_for_song(songs[0])
+  train_for_song(track)
