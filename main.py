@@ -53,14 +53,15 @@ if __name__ == '__main__':
     model, callbacks = utils.create_model(
       (network_input.shape[1], network_input.shape[2]),
       unique_notes_count,
-      loss_dest=2.0
+      loss_dest=0.5
     )
 
     # start training
     model.fit(network_input, network_output, epochs=50, callbacks=callbacks, batch_size=64)
 
     # training finished, generate output song
-    int_to_note = dict((number, note) for number, note in enumerate(pitches))
+    # convert from ints back to class names
+    int_to_note = dict((number, note) for number, note in enumerate(pitches)) # [key => value] = [int => string]
     prediction_output = utils.construct_song(model, network_input, int_to_note, length=500) # predict notes in the new song
     print('Generated notes\n', prediction_output)
     utils.generate_midi(prediction_output) # convert output to a .mid file
