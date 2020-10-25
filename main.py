@@ -16,31 +16,37 @@ if __name__ == '__main__':
   midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
   midi_files = list(filter(lambda f: 'ashover_simple_chords' in f, midi_files)) # train only on chord files
   print('Converting midis...')
-  track = []
+  track = [[]for i in midi_files]
+  i = 0
   for file in midi_files:
-    track = track + utils.convert_midi(file)
+    track[i] =utils.convert_midi(file)
+    i += 1
   
   # track = utils.convert_midi('./midis/VGM/green.mid') # a single track
 
   print('Done')
 
   def train_for_song(notes):
-    pitches = sorted(set(notes))
+    s = set()
+    for song in notes:
+      s.update(set(song))
+    pitches = sorted(s)
     note_to_int = dict((note, number) for number, note in enumerate(pitches))
 
     unique_notes_count = len(note_to_int.keys())
 
-    sequence_length = 30
+    sequence_length = 20
 
     network_input = []
     network_output = []
 
-    for i in range(0, len(notes) - sequence_length, 1):
-      sequence_in = notes[i : i + sequence_length] # s_l notes starting from i offset
-      sequence_out = notes[i + sequence_length] # current note + s_l
-      # map strings to numbers
-      network_input.append([note_to_int[char] for char in sequence_in])
-      network_output.append(note_to_int[sequence_out])
+    for song in notes:
+      for i in range(0, len(song) - sequence_length, 1):
+        sequence_in = song[i : i + sequence_length] # s_l notes starting from i offset
+        sequence_out = song[i + sequence_length] # current note + s_l
+        # map strings to numbers
+        network_input.append([note_to_int[char] for char in sequence_in])
+        network_output.append(note_to_int[sequence_out])
 
     patterns_count = len(network_input)
 
