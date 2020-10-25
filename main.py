@@ -19,7 +19,7 @@ if __name__ == '__main__':
   track = [[]for i in midi_files]
   i = 0
   for file in midi_files:
-    track[i] =utils.convert_midi(file)
+    track[i] = utils.convert_midi(file)
     i += 1
   
   # track = utils.convert_midi('./midis/VGM/green.mid') # a single track
