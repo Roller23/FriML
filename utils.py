@@ -97,3 +97,9 @@ def convert_midi(path):
       notes.append('.'.join(str(n) for n in event.pitches))
   print('Converted ' + path)
   return notes
+
+def get_unique_pitches(track):
+  s = set()
+  for song in track:
+    s.update(set(song))
+  return sorted(s)
