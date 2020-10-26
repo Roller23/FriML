@@ -90,13 +90,17 @@ def convert_midi(path):
   else:
     track = midi.flat.notes
   notes = []
+  durations = []
   for event in track:
     if isinstance(event, m21.note.Note):
       notes.append(str(event.pitch))
+      durations.append(event.duration.quarterLength)
     elif isinstance(event, m21.chord.Chord):
       notes.append('.'.join(str(n) for n in event.pitches))
+      durations.append(event.duration.quarterLength)
+  print(durations)
   print('Converted ' + path)
-  return notes
+  return notes, durations
 
 def get_unique_pitches(track):
   s = set()

@@ -62,12 +62,17 @@ def main():
   midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
   midi_files = list(filter(lambda f: 'ashover_simple_chords' in f, midi_files)) # train only on chord files
   print('Converting midis...')
-  track = [utils.convert_midi(file) for file in midi_files]
-  
-  # track = utils.convert_midi('./midis/VGM/green.mid') # a single track
-  model, network_input = train_for_track(track)
+  notes = []
+  durations = []
+  for file in midi_files:
+    _notes, _durations = utils.convert_midi(file)
+    notes.append(_notes)
+    durations.append(_durations)
+
+  track = utils.convert_midi('./midis/VGM/green.mid') # a single track
+  model, network_input = train_for_track(notes) # TO DO - add support for durations
   print('Done')
-  generate_song(model, network_input, track)
+  generate_song(model, network_input, notes)
 
 if __name__ == '__main__':
  main()
