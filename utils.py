@@ -81,14 +81,22 @@ def generate_midi(notes, output='output.mid'):
   midi_stream = m21.stream.Stream(output_notes)
   midi_stream.write('midi', fp=output)
 
-def convert_midi(path):
-  midi = m21.converter.parse(path)
-  parts = m21.instrument.partitionByInstrument(midi)
+def convert_midi(path, target_key=None):
+  stream = m21.converter.parse(path)
+  parts = m21.instrument.partitionByInstrument(stream)
+  key = stream.analyze('key')
+  key_str = str(key)
+  print('Key detected ' + key_str)
+  if target_key != None and key_str != target_key:
+    print('Transposing to ' + target_key)
+    interval = m21.interval.Interval(key.tonic, m21.pitch.Pitch('G'))
+    stream = stream.transpose(interval)
+    parts = m21.instrument.partitionByInstrument(stream)
   track = None
   if parts:
     track = parts.parts[0] if len(parts.parts[0].pitches) > 0 else parts.parts[1]
   else:
-    track = midi.flat.notes
+    track = stream.flat.notes
   notes = []
   durations = []
   for event in track:
@@ -98,7 +106,6 @@ def convert_midi(path):
     elif isinstance(event, m21.chord.Chord):
       notes.append('.'.join(str(n) for n in event.pitches))
       durations.append(event.duration.quarterLength)
-  print(durations)
   print('Converted ' + path)
   return notes, durations
 

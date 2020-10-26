@@ -65,7 +65,7 @@ def main():
   notes = []
   durations = []
   for file in midi_files:
-    _notes, _durations = utils.convert_midi(file)
+    _notes, _durations = utils.convert_midi(file, target_key='G major')
     notes.append(_notes)
     durations.append(_durations)
 
