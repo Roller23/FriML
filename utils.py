@@ -6,9 +6,11 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout, Activation
 from tensorflow.keras.callbacks import ModelCheckpoint
+from pathlib import Path
 
 def create_model(shape, density, filename="./output/weights.hdf5", loss_dest=0.0001):
   print('shape', shape)
+  Path(filename).parent.mkdir(parents=True, exist_ok=True) # create needed directories if they don't exist
   model = Sequential()
   model.add(LSTM(
     256,
