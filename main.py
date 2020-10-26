@@ -69,7 +69,6 @@ def main():
     notes.append(_notes)
     durations.append(_durations)
 
-  track = utils.convert_midi('./midis/VGM/green.mid') # a single track
   model, network_input = train_for_track(notes) # TO DO - add support for durations
   print('Done')
   generate_song(model, network_input, notes)
