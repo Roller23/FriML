@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles/main.css">
+  <title>FriML</title>
+</head>
+<body>
+  <input type="file" name="midiFile" id="midi-file" style="display: none;">
+  <div class="top-bar">
+    <button type="button" id="send-midi" class="btn">Load midi</button>
+    <button type="button" id="play-midi" class="btn">Play</button>
+    <button type="button" id="pause-midi" class="btn">Pause</button>
+    <button type="button" id="stop-midi" class="btn">Stop</button>
+    <div class="bpm-box">
+      0 BPM
+    </div>
+    <div class="signature-box">
+      4/4
+    </div>
+    <div class="name-box">
+      No song loaded
+    </div>
+  </div>
+  <div class="tracks"></div>
+  <script src="scripts/sf-player.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.1/socket.io.js"></script>
+  <script src="scripts/main.js"></script>
+</body>
+</html>
