@@ -25,6 +25,19 @@
     {aliases: 'bell', name: 'tinkle_bell', device: null},
     {aliases: 'cymbal', name: 'reverse_cymbal', device: null}
   ];
+
+  function req(path, data) {
+    let xhr = new XMLHttpRequest();
+    let form = new FormData();
+    Object.keys(data).forEach(key => form.append(key, data[key]));
+    const query = ('?') + new URLSearchParams(form).toString();
+    xhr.onload = function(x) {
+      console.log(this.responseText);
+    }
+    xhr.open('GET', path + query, true);
+    xhr.send();
+  }
+
   let instrumentsLoaded = false;
 
   function loadInstruments(callback) {
