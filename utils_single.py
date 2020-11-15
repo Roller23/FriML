@@ -64,21 +64,34 @@ def generate_midi(notes, output='output.mid'):
   offset = 0
   output_notes = []
   for chord in notes:
-    if '.' in chord: # it's a chord
+    vars = chord.split('|')
+    dur = 0.0
+    off = 0.0
+    if '/' in vars[1]:
+      sp = vars[1].split('/')
+      off = float(sp[0]) / float(sp[1])
+    else:
+      off = float(vars[1])
+    if '/' in vars[2]:
+      sp = vars[2].split('/')
+      dur = float(sp[0]) / float(sp[1])
+    else:
+      dur = float(vars[2])
+    if '.' in vars[0]: # it's a chord
       notes = []
-      for current_note in chord.split('.'):
-        new_note = m21.note.Note(current_note)
+      for current_note in vars[0].split('.'):
+        new_note = m21.note.Note(current_note, duration = m21.duration.Duration(dur))
         new_note.storedInstrument = m21.instrument.Piano()
         notes.append(new_note)
       new_chord = m21.chord.Chord(notes)
       new_chord.offset = offset
       output_notes.append(new_chord)
     else: # it's a single note
-      new_note = m21.note.Note(chord)
+      new_note = m21.note.Note(vars[0], duration = m21.duration.Duration(dur))
       new_note.offset = offset
       new_note.storedInstrument = m21.instrument.Piano()
       output_notes.append(new_note)
-    offset += 0.5
+    offset += off
 
   midi_stream = m21.stream.Stream(output_notes)
   midi_stream.write('midi', fp=output)
@@ -100,16 +113,21 @@ def convert_midi(path, target_key=None):
   else:
     track = stream.flat.notes
   notes = []
+  offsets = []
   durations = []
+  last_offset = 0
   for event in track:
     if isinstance(event, m21.note.Note):
       notes.append(str(event.pitch))
+      offsets.append(str(event.offset-last_offset))
       durations.append(event.duration.quarterLength)
     elif isinstance(event, m21.chord.Chord):
       notes.append('.'.join(str(n) for n in event.pitches))
+      offsets.append(str(event.offset-last_offset))
       durations.append(event.duration.quarterLength)
+    last_offset = event.offset
   print('Converted ' + path)
-  return notes, durations
+  return notes, offsets, durations
 
 def get_unique_pitches(track):
   s = set()

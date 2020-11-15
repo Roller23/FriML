@@ -8,9 +8,13 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout, Activation
 from tensorflow.keras.callbacks import ModelCheckpoint
 
-import utils
+import utils_single as utils
 
-def train_for_track(notes):
+def train_for_track(notes, offsets, durations):
+  for song, off, dur in zip(notes, offsets, durations):
+    for i in range(0, len(song), 1):
+      song[i] = song[i] + '|' + off[i] + '|' + str(dur[i])
+
   pitches = utils.get_unique_pitches(notes)
   note_to_int = dict((note, number) for number, note in enumerate(pitches))
 
@@ -40,38 +44,57 @@ def train_for_track(notes):
   model, callbacks = utils.create_model(
     (network_input.shape[1], network_input.shape[2]),
     unique_notes_count,
-    loss_dest=0.5
+    loss_dest=1.35
   )
 
   # start training
-  model.fit(network_input, network_output, epochs=50, callbacks=callbacks, batch_size=64)
+  model.fit(network_input, network_output, epochs=10, callbacks=callbacks, batch_size=64)
 
   return model, network_input
 
-def generate_song(model, network_input, track, length=500):
+def generate_song(model, network_input, track, output, length=500):
   # training finished, generate output song
   # convert from ints back to class names
   pitches = utils.get_unique_pitches(track)
   int_to_note = dict((number, note) for number, note in enumerate(pitches)) # [key => value] = [int => string]
   prediction_output = utils.construct_song(model, network_input, int_to_note, length=length) # predict notes in the new song
   print('Generated notes\n', prediction_output)
-  utils.generate_midi(prediction_output) # convert output to a .mid file
+  utils.generate_midi(prediction_output, output) # convert output to a .mid file
 
 def main():
-  midis_folder = './midis/Nottingham/train/'
+  midis_folder = './midis/n64/'
   midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
-  midi_files = list(filter(lambda f: 'ashover_simple_chords' in f, midi_files)) # train only on chord files
+  midi_files = list(midi_files) # train only on chord files
   print('Converting midis...')
   notes = []
+  offsets = []
   durations = []
+  i=0
   for file in midi_files:
-    _notes, _durations = utils.convert_midi(file, target_key='G major')
+    if i==5:
+      break
+    try:
+      _notes, _offsets, _durations = utils.convert_midi(file, target_key='G major')
+    except:
+      os.remove(file)
+    
     notes.append(_notes)
+    offsets.append(_offsets)
     durations.append(_durations)
+    i+=1
 
-  model, network_input = train_for_track(notes) # TO DO - add support for durations
+  model, network_input = train_for_track(notes, offsets, durations)
   print('Done')
-  generate_song(model, network_input, notes)
+  i = 0
+  while True:	
+    try:
+      generate_song(model, network_input, notes, 'output'+str(i)+'.mid')
+    except Exception as e:
+      print(e)
+    i+=1
+    print("Continue?")
+    if input()!='y':
+      break
 
 if __name__ == '__main__':
- main()
+  main()
