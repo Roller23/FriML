@@ -10,7 +10,11 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 
 import utils_multi as utils
 
-def train_for_track(notes, durations):
+def train_for_track(notes, offsets, durations):
+  for off, dur in zip(offsets, durations):
+    for i in range(0, len(off), 1):
+      dur[i] = off[i] + '|' + str(dur[i])
+
   pitches = utils.get_unique_pitches(notes)
   note_to_int = dict((note, number) for number, note in enumerate(pitches))
 
@@ -56,16 +60,11 @@ def train_for_track(notes, durations):
   dur_network_input = dur_network_input / float(unique_durations_count)
   dur_network_output = to_categorical(dur_network_output)
 
-  print("durpatternscount", dur_patterns_count)
-  print("uniquedurscount", unique_durations_count)
   model, callbacks = utils.create_model(
     (network_input.shape[1], network_input.shape[2]),
     unique_notes_count,
     loss_dest=0.5
   )
-
-  print("shape dur", dur_network_input.shape)
-
   dur_model, dur_callbacks = utils.create_model(
     (dur_network_input.shape[1], dur_network_input.shape[2]),
     unique_durations_count,
@@ -93,27 +92,29 @@ def generate_song(model, network_input, track, dur_model, dur_input, durs, outpu
   utils.generate_midi(prediction_output, dur_prediction_output, output) # convert output to a .mid file
 
 def main():
-  midis_folder = './midis/n64/'
+  midis_folder = './midis/VGM/'
   midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
   #midi_files = list(filter(lambda f: 'ashover_simple_chords' in f, midi_files)) # train only on chord files
   print('Converting midis...')
   notes = []
+  offsets = []
   durations = []
   i=0
   for file in midi_files:
     if i==5:
       break
     try:
-      _notes, _durations = utils.convert_midi(file, target_key='G major')
+      _notes, _offsets, _durations = utils.convert_midi(file, target_key='G major')
     except:
       os.remove(file)
     
     notes.append(_notes)
+    offsets.append(_offsets)
     durations.append(_durations)
     i+=1
 
   print(durations)
-  model, dur_model, network_input, dur_network_input = train_for_track(notes, durations) # TO DO - add support for durations
+  model, dur_model, network_input, dur_network_input = train_for_track(notes, offsets, durations) # TO DO - add support for durations
   print('Done')
   
   i = 0

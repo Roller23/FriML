@@ -10,7 +10,6 @@ from pathlib import Path
 
 def create_model(shape, density, filename="./output/weights.hdf5", loss_dest=0.0001):
   print('shape', shape)
-  print('density', density)
   Path(filename).parent.mkdir(parents=True, exist_ok=True) # create needed directories if they don't exist
   model = Sequential()
   model.add(LSTM(
@@ -45,13 +44,8 @@ def create_model(shape, density, filename="./output/weights.hdf5", loss_dest=0.0
   return (model, callbacks_list)
 
 def construct_song(model, network_input, int_lut, dur_model, dur_input, int_dur, length=200):
-  print(int_dur)
-  print("Dur_input",dur_input)
-  print("Dur input len", len(dur_input))
   pattern = network_input[np.random.randint(0, len(network_input) - 1)] # pick a random sequence to start
   dur_pattern = dur_input[np.random.randint(0, len(dur_input) -1 )]
-  print("Pattern", pattern)
-  print("Dur pattern", dur_pattern)
   output = []
   dur_output = []
   for note_index in range(length):
@@ -86,6 +80,19 @@ def generate_midi(notes, durs, output='output.mid'):
   output_notes = []
   output_durations = []
   for chord, dur in zip(notes, durs):
+    vars = dur.split('|')
+    off = 0.0
+    if '/' in vars[0]:
+      sp = vars[0].split('/')
+      off = float(sp[0]) / float(sp[1])
+    else:
+      off = float(vars[0])
+    if '/' in vars[1]:
+      sp = vars[1].split('/')
+      dur = float(sp[0]) / float(sp[1])
+    else:
+      dur = float(vars[1])
+
     if '.' in chord: # it's a chord
       notes = []
       for current_note in chord.split('.'):
@@ -100,7 +107,7 @@ def generate_midi(notes, durs, output='output.mid'):
       new_note.offset = offset
       new_note.storedInstrument = m21.instrument.Piano()
       output_notes.append(new_note)
-    offset += 0.5
+    offset += off
 
   midi_stream = m21.stream.Stream(output_notes)
   midi_stream.write('midi', fp=output)
@@ -122,16 +129,21 @@ def convert_midi(path, target_key=None):
   else:
     track = stream.flat.notes
   notes = []
+  offsets = []
   durations = []
+  last_offset = 0
   for event in track:
     if isinstance(event, m21.note.Note):
       notes.append(str(event.pitch))
+      offsets.append(str(event.offset-last_offset))
       durations.append(event.duration.quarterLength)
     elif isinstance(event, m21.chord.Chord):
       notes.append('.'.join(str(n) for n in event.pitches))
+      offsets.append(str(event.offset-last_offset))
       durations.append(event.duration.quarterLength)
+    last_offset = event.offset
   print('Converted ' + path)
-  return notes, durations
+  return notes, offsets, durations
 
 def get_unique_pitches(track):
   s = set()
