@@ -1,9 +1,12 @@
 import os
+import pickle
+import random
 import numpy as np
 import music21 as m21
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import load_model
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout, Activation
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -48,15 +51,22 @@ def train_for_track(notes, offsets, durations):
   )
 
   # start training
-  model.fit(network_input, network_output, epochs=10, callbacks=callbacks, batch_size=64)
+  model.fit(network_input, network_output, epochs=20, callbacks=callbacks, batch_size=64)
 
   return model, network_input
 
-def generate_song(model, network_input, track, output, length=500):
+def load_data():
+  with open('output/int_to_note.p', 'rb') as fp:
+    int_to_note = pickle.load(fp)
+  model = load_model('output/weights.hdf5')
+  pattern = []
+  for i in range(0, 20):
+    pattern.append(random.randint(0,max(int_to_note.keys())))
+  return int_to_note, model, pattern
+
+def generate_song(model, network_input, int_to_note, output, length=500):
   # training finished, generate output song
   # convert from ints back to class names
-  pitches = utils.get_unique_pitches(track)
-  int_to_note = dict((number, note) for number, note in enumerate(pitches)) # [key => value] = [int => string]
   prediction_output = utils.construct_song(model, network_input, int_to_note, length=length) # predict notes in the new song
   print('Generated notes\n', prediction_output)
   utils.generate_midi(prediction_output, output) # convert output to a .mid file
@@ -71,7 +81,7 @@ def main():
   durations = []
   i=0
   for file in midi_files:
-    if i==5:
+    if i==10:
       break
     try:
       _notes, _offsets, _durations = utils.convert_midi(file, target_key='G major')
@@ -86,9 +96,20 @@ def main():
   model, network_input = train_for_track(notes, offsets, durations)
   print('Done')
   i = 0
+
+  pitches = utils.get_unique_pitches(notes)
+  int_to_note = dict((number, note) for number, note in enumerate(pitches)) # [key => value] = [int => string]
+  with open('output/int_to_note.p', 'wb') as fp:
+    pickle.dump(int_to_note, fp, protocol=pickle.HIGHEST_PROTOCOL)
+  pattern = []
+  for i in range(0, 20):
+    pattern.append(random.randint(0,max(int_to_note.keys())))
+
+  # int_to_note, model, pattern = load_data()
+
   while True:	
     try:
-      generate_song(model, network_input, notes, 'output'+str(i)+'.mid')
+      generate_song(model, pattern, int_to_note, 'output'+str(i)+'.mid')
     except Exception as e:
       print(e)
     i+=1

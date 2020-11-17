@@ -43,8 +43,7 @@ def create_model(shape, density, filename="./output/weights.hdf5", loss_dest=0.0
   callbacks_list.append(trainingStopCallback)
   return (model, callbacks_list)
 
-def construct_song(model, network_input, int_lut, length=200):
-  pattern = network_input[np.random.randint(0, len(network_input) - 1)] # pick a random sequence to start
+def construct_song(model, pattern, int_lut, length=200):
   output = []
   for note_index in range(length):
     # reshape and normalize
