@@ -1,4 +1,6 @@
 import os
+import pickle
+import random
 import numpy as np
 import music21 as m21
 import tensorflow as tf
@@ -63,11 +65,13 @@ def train_for_track(notes, offsets, durations):
   model, callbacks = utils.create_model(
     (network_input.shape[1], network_input.shape[2]),
     unique_notes_count,
+    'output/weights.hdf5',
     loss_dest=0.5
   )
   dur_model, dur_callbacks = utils.create_model(
     (dur_network_input.shape[1], dur_network_input.shape[2]),
     unique_durations_count,
+    'output/weights_dur.hdf5',
     loss_dest=0.5
   )
 
@@ -77,13 +81,28 @@ def train_for_track(notes, offsets, durations):
 
   return model, dur_model, network_input, dur_network_input
 
-def generate_song(model, network_input, track, dur_model, dur_input, durs, output, length=500):
+def load_data():
+  # Loading notes data
+  with open('output/int_to_note.p','rb') as fp:
+    int_to_note = pickle.load(fp)
+  with open('output/int_to_duration.p','rb') as fp:
+    int_to_duration = pickle.load(fp)
+  model = load_model('output/weights.hdf5')
+  model_dur = load_model('output/weights_dur.hdf5')
+  pattern = []
+  pattern_dur = []
+  for i in range(0,20):
+    pattern.append(random.randint(0,max(int_to_note.keys())))
+    pattern_dur.append(random.randint(0,max(int_to_duration.keys())))
+  return int_to_note,model,pattern,int_to_duration,model_dur,pattern_dur
+
+def generate_song(model, network_input, int_to_note, dur_model, dur_input, int_to_duration, output, length=500):
   # training finished, generate output song
   # convert from ints back to class names
-  pitches = utils.get_unique_pitches(track)
-  int_to_note = dict((number, note) for number, note in enumerate(pitches)) # [key => value] = [int => string]
-  unique_durations = utils.get_unique_pitches(durs)
-  int_to_duration = dict((number, duration) for number, duration in enumerate(unique_durations))
+  #pitches = utils.get_unique_pitches(track)
+  #int_to_note = dict((number, note) for number, note in enumerate(pitches)) # [key => value] = [int => string]
+  #unique_durations = utils.get_unique_pitches(durs)
+  #int_to_duration = dict((number, duration) for number, duration in enumerate(unique_durations))
   # print(int_to_note)
   # print(int_to_duration)
   prediction_output, dur_prediction_output = utils.construct_song(model, network_input, int_to_note, dur_model, dur_input, int_to_duration, length=length) # predict notes in the new song
@@ -117,10 +136,27 @@ def main():
   model, dur_model, network_input, dur_network_input = train_for_track(notes, offsets, durations) # TO DO - add support for durations
   print('Done')
   
-  i = 0
+  pitches = utils.get_unique_pitches(notes)
+  int_to_note = dict((number, note) for number, note in enumerate(pitches))
+  unique_durations = utils.get_unique_pitches(durations)
+  int_to_duration = dict((number, duration) for number, duration in enumerate(unique_durations))
+  with open('output/int_to_note.p','wb') as fp:
+    pickle.dump(int_to_note,fp,protocol=pickle.HIGHEST_PROTOCOL)
+  pattern = []
+  for i in range(0,20):
+    pattern.append(random.randint(0,max(int_to_note.keys())))
+ 
+  with open('output/int_to_duration.p','wb') as fp:
+    pickle.dump(int_to_duration,fp,protocol=pickle.HIGHEST_PROTOCOL)
+  pattern_dur = []
+  for i in range(0,20):
+    pattern_dur.append(random.randint(0, max(int_to_duration.keys())))
+
+  #i = 0
   while True:	
     try:
-      generate_song(model, network_input, notes, dur_model, dur_network_input, durations, 'output'+str(i)+'.mid')
+      #generate_song(model, network_input, notes, dur_model, dur_network_input, durations, 'output'+str(i)+'.mid')
+      generate_song(model, pattern, int_to_note, dur_model, pattern_dur, int_to_duration, 'output'+str(i)+'.mid')
     except Exception as e:
       print(e)
     i+=1

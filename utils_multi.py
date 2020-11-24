@@ -8,7 +8,7 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout, Activation
 from tensorflow.keras.callbacks import ModelCheckpoint
 from pathlib import Path
 
-def create_model(shape, density, filename="./output/weights.hdf5", loss_dest=0.0001):
+def create_model(shape, density, filename, loss_dest=0.0001):
   print('shape', shape)
   Path(filename).parent.mkdir(parents=True, exist_ok=True) # create needed directories if they don't exist
   model = Sequential()
@@ -43,9 +43,9 @@ def create_model(shape, density, filename="./output/weights.hdf5", loss_dest=0.0
   callbacks_list.append(trainingStopCallback)
   return (model, callbacks_list)
 
-def construct_song(model, network_input, int_lut, dur_model, dur_input, int_dur, length=200):
-  pattern = network_input[np.random.randint(0, len(network_input) - 1)] # pick a random sequence to start
-  dur_pattern = dur_input[np.random.randint(0, len(dur_input) -1 )]
+def construct_song(model, pattern, int_lut, dur_model, dur_pattern, int_dur, length=200):
+  #pattern = network_input[np.random.randint(0, len(network_input) - 1)] # pick a random sequence to start
+  #dur_pattern = dur_input[np.random.randint(0, len(dur_input) -1 )]
   output = []
   dur_output = []
   for note_index in range(length):
