@@ -1,6 +1,7 @@
 import os
 import pickle
 import random
+import json
 import numpy as np
 import music21 as m21
 import tensorflow as tf
@@ -42,7 +43,7 @@ def train_for_track(notes, offsets, durations):
   network_input = np.reshape(network_input, (patterns_count, sequence_length, 1))
   # normalize input
   network_input = network_input / float(unique_notes_count) # normalize input
-  network_output = to_categorical(network_output) # convert the vector to a binary matrix
+  # network_output = to_categorical(network_output) # convert the vector to a binary matrix - not needed, done in Generator now
 
   model, callbacks = utils.create_model(
     (network_input.shape[1], network_input.shape[2]),
@@ -50,8 +51,40 @@ def train_for_track(notes, offsets, durations):
     loss_dest=1.35
   )
 
+
+  class DataGenerator(tf.keras.utils.Sequence):
+    def __init__(self, x_col, y_col, seq, outputs, batch_size=32):
+      self.batch_size = batch_size
+      self.x_col = x_col
+      self.y_col = y_col
+      self.seq = seq
+      self.outputs = outputs
+
+    def __data_generation(self, index):
+      'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
+      i = index*self.batch_size
+      # Initialization
+      X = np.empty((self.batch_size*self.seq)).reshape(self.batch_size,self.seq,1)
+      y = np.empty((self.batch_size), dtype=int)
+      # Generate data
+      X[:] = self.x_col[i : i+self.batch_size]
+      y[:] = self.y_col[i : i+self.batch_size]
+      return X, keras.utils.to_categorical(y, num_classes=self.outputs)
+
+    def __getitem__(self, index):
+      'Generate one batch of data'
+      X, y = self.__data_generation(index)
+      return X, y
+
+    def __len__(self):
+      'Denotes the number of batches per epoch'
+      return int(np.floor(len(self.y_col)/self.batch_size))
+
+
+  my_generator = DataGenerator(x_col=network_input, y_col=network_output, seq=sequence_length, outputs=unique_notes_count, batch_size=64)
+
   # start training
-  model.fit(network_input, network_output, epochs=20, callbacks=callbacks, batch_size=64)
+  model.fit(my_generator, epochs=20, callbacks=callbacks)
 
   return model, network_input
 
@@ -59,10 +92,7 @@ def load_data():
   with open('output/int_to_note.p', 'rb') as fp:
     int_to_note = pickle.load(fp)
   model = load_model('output/weights.hdf5')
-  pattern = []
-  for i in range(0, 20):
-    pattern.append(random.randint(0,max(int_to_note.keys())))
-  return int_to_note, model, pattern
+  return int_to_note, model
 
 def generate_song(model, network_input, int_to_note, output, length=500):
   # training finished, generate output song
@@ -93,6 +123,22 @@ def main():
     durations.append(_durations)
     i+=1
 
+  with open('output/notes.json', 'w') as fp:
+    json.dump(notes, fp)
+  with open('output/offsets.json', 'w') as fp:
+    json.dump(offsets, fp)
+  for item in durations:
+    for i in range(0, len(item), 1):
+      item[i] = str(item[i])
+  with open('output/durations.json', 'w') as fp:
+    json.dump(durations, fp)
+  # with open('output/notes.json', 'r') as fp:
+  #   notes = json.load(fp)
+  # with open('output/offsets.json', 'r') as fp:
+  #   offsets = json.load(fp)
+  # with open('output/durations.json', 'r') as fp:
+  #   durations = json.load(fp)
+
   model, network_input = train_for_track(notes, offsets, durations)
   print('Done')
   i = 0
@@ -101,20 +147,21 @@ def main():
   int_to_note = dict((number, note) for number, note in enumerate(pitches)) # [key => value] = [int => string]
   with open('output/int_to_note.p', 'wb') as fp:
     pickle.dump(int_to_note, fp, protocol=pickle.HIGHEST_PROTOCOL)
-  pattern = []
-  for i in range(0, 20):
-    pattern.append(random.randint(0,max(int_to_note.keys())))
 
-  # int_to_note, model, pattern = load_data()
-
+  # int_to_note, model = load_data()
+  
+  i = 0
   while True:	
     try:
+      pattern = []
+      for j in range(0, 20):
+        pattern.append(random.randint(0,max(int_to_note.keys())))
       generate_song(model, pattern, int_to_note, 'output'+str(i)+'.mid')
     except Exception as e:
       print(e)
     i+=1
     print("Continue?")
-    if input()!='y':
+    if input()=='n':
       break
 
 if __name__ == '__main__':
