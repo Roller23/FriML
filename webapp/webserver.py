@@ -4,6 +4,10 @@ import json
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 
+import sys
+sys.path.append("../")
+import utils
+
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
   def do_GET(self):
     if self.path.startswith('/data'):
@@ -11,8 +15,8 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
       self.send_header("Content-type", "text/html")
       self.end_headers()
       query = parse_qs(urlparse(self.path).query)
-      print(query)
-      data = json.dumps({'message': 'hello javascript'})
+      # json_string = utils.generate_midi(query['key'], query['genre'])
+      data = json.dumps({'song': []})
       self.wfile.write(bytes(data, "utf8"))
       return
     return http.server.SimpleHTTPRequestHandler.do_GET(self)

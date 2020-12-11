@@ -3,28 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/style.css">
   <title>FriML</title>
 </head>
 <body>
-  <input type="file" name="midiFile" id="midi-file" style="display: none;">
-  <div class="top-bar">
-    <button type="button" id="send-midi" class="btn">Load midi</button>
-    <button type="button" id="play-midi" class="btn">Play</button>
-    <button type="button" id="pause-midi" class="btn">Pause</button>
-    <button type="button" id="stop-midi" class="btn">Stop</button>
-    <div class="bpm-box">
-      0 BPM
+
+  <div class="main-container">
+    <div class="blur"></div>
+    <div class="progress-bar">
+      <div class="line">
+        <div class="dot selected" style="left: 0%;">
+          <div class="label">Gatunek</div>
+        </div>
+        <div class="dot" style="left: calc(100% / 3);">
+          <div class="label">Klucz</div>
+        </div>
+        <div class="dot" style="left: calc(100% / 3 * 2);">
+          <div class="label">Instrument</div>
+        </div>
+        <div class="dot" style="left: calc(100% / 3 * 3);">
+          <div class="label">Wynik</div>
+        </div>
+      </div>
     </div>
-    <div class="signature-box">
-      4/4
-    </div>
-    <div class="name-box">
-      No song loaded
+    <div class="slider">
+
+      <div class="genres">
+           <div class="genre one" genre='one'>
+             <div class="bg"></div>
+             <img src="images/icon1.png" class="icon">
+             <div class="text">Pop</div>
+           </div><!--
+        --><div class="genre two" genre='two'>
+          <div class="bg"></div>
+          <img src="images/icon2.png" class="icon">
+          <div class="text">Rock</div>
+        </div><!--
+        --><div class="genre three" genre='three'>
+          <div class="bg"></div>
+          <img src="images/icon3.png" class="icon">
+          <div class="text">Country</div>
+        </div><!--
+        --><div class="genre four" genre='four'>
+          <div class="bg"></div>
+          <img src="images/icon4.png" class="icon">
+          <div class="text">Klasyczna</div>
+        </div>
+      </div>
+
+      <div class="keys waiting">
+        <img src="images/clef.png" class="clef">
+        <div class="circle outer">
+          <div class="tick"><div class="node" key="C">C</div></div>
+          <div class="tick"><div class="node" key="G">G</div></div>
+          <div class="tick"><div class="node" key="D">D</div></div>
+          <div class="tick"><div class="node" key="A">A</div></div>
+          <div class="tick"><div class="node" key="E">E</div></div>
+          <div class="tick"><div class="node" key="B">B</div></div>
+          <div class="tick"><div class="node" key="F#">F#</div></div>
+          <div class="tick"><div class="node" key="Db">Db</div></div>
+          <div class="tick"><div class="node" key="Ab">Ab</div></div>
+          <div class="tick"><div class="node" key="Eb">Eb</div></div>
+          <div class="tick"><div class="node" key="Bb">Bb</div></div>
+          <div class="tick"><div class="node" key="F">F</div></div>
+          <div class="circle inner">
+            <div class="tick"><div class="node" key="Am">Am</div></div>
+            <div class="tick"><div class="node" key="Em">Em</div></div>
+            <div class="tick"><div class="node" key="Bm">Bm</div></div>
+            <div class="tick"><div class="node" key="F#m">F#m</div></div>
+            <div class="tick"><div class="node" key="C#m">C#m</div></div>
+            <div class="tick"><div class="node" key="G#m">G#m</div></div>
+            <div class="tick"><div class="node" key="D#m">D#m</div></div>
+            <div class="tick"><div class="node" key="Bbm">Bbm</div></div>
+            <div class="tick"><div class="node" key="Fm">Fm</div></div>
+            <div class="tick"><div class="node" key="Cm">Cm</div></div>
+            <div class="tick"><div class="node" key="Gm">Gm</div></div>
+            <div class="tick"><div class="node" key="Dm">Dm</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="instruments waiting">
+        <div class="instrument" name="piano"></div>
+        <div class="instrument" name="guitar"></div>
+        <div class="instrument" name="violin"></div>
+        <div class="instrument" name="synth"></div>
+      </div>
+
+      <div class="results waiting">
+        <div class="controls">
+          <div class="play"></div>
+          <div class="replay"></div>
+        </div>
+        <div class="track">
+          <canvas width="1000" height="500"></canvas>
+        </div>
+        <div class="bottom">
+          <div class="download-wav">
+            <div class="inner">
+              <div class="desc">Pobierz Wave</div>
+            </div>
+          </div>
+          <div class="download-midi">
+            <div class="inner">
+              <div class="desc">Pobierz Midi</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
-  <div class="tracks"></div>
-  <script src="scripts/sf-player.js"></script>
-  <script src="scripts/main.js"></script>
+  <script src="scripts/script.js"></script>
 </body>
 </html>

@@ -38,6 +38,8 @@
     xhr.send();
   }
 
+  window.reqTest = req;
+
   let instrumentsLoaded = false;
 
   function loadInstruments(callback) {
