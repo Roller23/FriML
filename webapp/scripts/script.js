@@ -1,4 +1,14 @@
 (function() {
+
+  let instrument = null;
+  let context = new AudioContext();
+  let envelope = context.createGain();
+  envelope.gain.value = 0.05;
+  Soundfont.instrument(context, 'acoustic_grand_piano', {release: 5, sustain: 5}).then(device => {
+    instrument = device;
+    console.log('Piano loaded');
+  });
+
   let get = selector => document.querySelector(selector);
   let getAll = selector => document.querySelectorAll(selector);
 
@@ -108,6 +118,8 @@
     console.log(selectedGenre, selectedKey, selectedInstrument);
     let data = {genre: selectedGenre, key: selectedKey, instrument: selectedInstrument};
     let json = await req('/data', data);
+    if (json === null) return;
+    songToPlay = transformMidi(json.song);
     console.log('data', json)
   }
 
@@ -170,9 +182,6 @@
 
   setDynamicSizes();
 
-  let songPlaying = false;
-  let timeStart = -1;
-
   class Note {
     constructor(_x, _duration, _pitch) {
       this.x = _x;
@@ -185,13 +194,21 @@
     let result = [];
     let timePassed = 0;
     midi.forEach(note => {
-      timePassed += note.x;
-      result.push(new Note(timePassed, note.length, note.y));
+      timePassed += Math.floor(eval(note.off) * 1000);
+      let duration = Math.floor(eval(note.dur) * 1000);
+      let pitches = note.note.split('.');
+      pitches.forEach(pitch => {
+        let octavianNote = new Octavian.Note(pitch.replace('-', 'b'));
+        result.push(new Note(timePassed, duration, octavianNote.pianoKey));
+      });
     });
+    console.log('transformation result', result)
     return result;
   }
 
-  let songToPlay = transformMidi(dummyLines);
+  let songToPlay = null;
+  let songPlaying = false;
+  let timeStart = -1;
 
   function step(timestamp) {
     if (timeStart === -1) {
@@ -201,7 +218,7 @@
     let progress = timestamp - timeStart;
     clearTrack();
     songToPlay.forEach(note => {
-      let pos = {x: note.x - (progress / 10), y: note.pitch * 2};
+      let pos = {x: note.x - progress, y: note.pitch * 6};
       let length = note.duration;
       drawLine(pos, length);
     });
@@ -213,7 +230,9 @@
     songPlaying = true;
     songToPlay.forEach(note => {
       setTimeout(() => {
-        console.log('note', note);
+        let playData = {duration: note.dur / 1000};
+        instrument.play(note.pitch, context.currentTime, playData);
+        console.log('playing', note.pitch)
       }, note.x);
     });
     window.requestAnimationFrame(step);

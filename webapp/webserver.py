@@ -3,7 +3,7 @@ import socketserver
 import json
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
-
+import os
 import sys
 sys.path.append("../")
 import main_single
@@ -15,7 +15,9 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
       self.send_header("Content-type", "text/html")
       self.end_headers()
       query = parse_qs(urlparse(self.path).query)
-      json_string = main_single.generate_for_server('n64', query['key'], query['instrument'])
+      # os.chdir('..')
+      # json_string = main_single.generate_for_server('n64', query['key'], query['instrument'])
+      json_string = open('dummy.json', 'r').read()
       data = json.dumps({'song': json_string})
       self.wfile.write(bytes(data, "utf8"))
       return
