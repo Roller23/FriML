@@ -6,7 +6,7 @@ from urllib.parse import parse_qs
 
 import sys
 sys.path.append("../")
-import utils
+import main_single
 
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
   def do_GET(self):
@@ -15,8 +15,8 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
       self.send_header("Content-type", "text/html")
       self.end_headers()
       query = parse_qs(urlparse(self.path).query)
-      # json_string = utils.generate_midi(query['key'], query['genre'])
-      data = json.dumps({'song': []})
+      json_string = main_single.generate_for_server('n64', query['key'], query['instrument'])
+      data = json.dumps({'song': json_string})
       self.wfile.write(bytes(data, "utf8"))
       return
     return http.server.SimpleHTTPRequestHandler.do_GET(self)

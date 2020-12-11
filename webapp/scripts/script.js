@@ -36,7 +36,9 @@
       const query = ('?') + new URLSearchParams(form).toString();
       xhr.onload = function(x) {
         try {
-          resolve(JSON.parse(this.responseText));
+          let json = JSON.parse(this.responseText);
+          json.song = JSON.parse(json.song);
+          resolve(json);
         } catch (e) {
           console.log('Error!', this.responseText);
           resolve(null);
