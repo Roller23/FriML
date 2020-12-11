@@ -14,6 +14,16 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 
 import utils_single as utils
 
+# # Fix for Manjaro, CUDA 11 (pacman -S python-tensorflow-cuda)
+# # Fixes: Could not create cudnn handle: CUDNN_STATUS_INTERNAL_ERROR
+# from tensorflow.compat.v1 import ConfigProto
+# from tensorflow.compat.v1 import InteractiveSession
+
+# config = ConfigProto()
+# config.gpu_options.allow_growth = True
+# session = InteractiveSession(config=config)
+# # xif. If you don't use Manjaro, comment it or something.
+
 def train_for_track(notes, offsets, durations):
   for song, off, dur in zip(notes, offsets, durations):
     for i in range(0, len(song), 1):
@@ -156,7 +166,7 @@ def main():
   pitches = utils.get_unique_pitches(notes)
   int_to_note = dict((number, note) for number, note in enumerate(pitches)) # [key => value] = [int => string]
   with open('output/int_to_note.p', 'wb') as fp:
-    pickle.dump(int_to_note, fp, protocol=pickle.HIGHEST_PROTOCOL)
+    pickle.dump(int_to_note, fp, protocol=pickle.DEFAULT_PROTOCOL)
 
   # int_to_note, model = load_data()
   
