@@ -1,12 +1,22 @@
 (function() {
-
-  let instrument = null;
+  let instruments = {};
   let context = new AudioContext();
   let envelope = context.createGain();
-  envelope.gain.value = 0.05;
-  Soundfont.instrument(context, 'acoustic_grand_piano', {release: 5, sustain: 5}).then(device => {
-    instrument = device;
+  Soundfont.instrument(context, 'bright_acoustic_piano', /*{release: 0, sustain: 1}*/).then(device => {
+    instruments.piano = device;
     console.log('Piano loaded');
+  });
+  Soundfont.instrument(context, 'distortion_guitar').then(device => {
+    instruments.guitar = device;
+    console.log('Guitar loaded');
+  });
+  Soundfont.instrument(context, 'violin').then(device => {
+    instruments.violin = device;
+    console.log('Violin loaded');
+  });
+  Soundfont.instrument(context, 'synth_bass_1').then(device => {
+    instruments.synth = device;
+    console.log('Synth loaded');
   });
 
   let get = selector => document.querySelector(selector);
@@ -25,7 +35,7 @@
   }
 
   function drawLine(from, length) {
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
       ctx.beginPath();
       ctx.moveTo(from.x, from.y + i);
       ctx.lineTo(from.x + length, from.y + i);
@@ -135,49 +145,6 @@
     });
   }
 
-  let dummyLines = [
-    {x: 50, y: 50, length: 100},
-    {x: 50, y: 70, length: 150},
-    {x: 50, y: 100, length: 50},
-    {x: 50, y: 50, length: 30},
-    {x: 50, y: 200, length: 30},
-    {x: 50, y: 170, length: 30},
-    {x: 50, y: 150, length: 100},
-    {x: 50, y: 130, length: 100},
-    {x: 50, y: 100, length: 50},
-    {x: 50, y: 50, length: 150},
-    {x: 50, y: 50, length: 100},
-    {x: 50, y: 70, length: 150},
-    {x: 50, y: 100, length: 50},
-    {x: 50, y: 50, length: 30},
-    {x: 50, y: 200, length: 30},
-    {x: 50, y: 170, length: 30},
-    {x: 50, y: 150, length: 100},
-    {x: 50, y: 130, length: 100},
-    {x: 50, y: 100, length: 50},
-    {x: 50, y: 50, length: 150},
-    {x: 50, y: 50, length: 100},
-    {x: 50, y: 70, length: 150},
-    {x: 50, y: 100, length: 50},
-    {x: 50, y: 50, length: 30},
-    {x: 50, y: 200, length: 30},
-    {x: 50, y: 170, length: 30},
-    {x: 50, y: 150, length: 100},
-    {x: 50, y: 130, length: 100},
-    {x: 50, y: 100, length: 50},
-    {x: 50, y: 50, length: 150},
-    {x: 50, y: 50, length: 100},
-    {x: 50, y: 70, length: 150},
-    {x: 50, y: 100, length: 50},
-    {x: 50, y: 50, length: 30},
-    {x: 50, y: 200, length: 30},
-    {x: 50, y: 170, length: 30},
-    {x: 50, y: 150, length: 100},
-    {x: 50, y: 130, length: 100},
-    {x: 50, y: 100, length: 50},
-    {x: 50, y: 50, length: 150},
-  ];
-
   window.addEventListener('resize', setDynamicSizes);
 
   setDynamicSizes();
@@ -193,13 +160,14 @@
   function transformMidi(midi) {
     let result = [];
     let timePassed = 0;
+    let speed = 0.8;
     midi.forEach(note => {
-      timePassed += Math.floor(eval(note.off) * 1000);
-      let duration = Math.floor(eval(note.dur) * 1000);
+      timePassed += Math.floor(eval(note.off * speed) * 1000);
+      let duration = Math.floor(eval(note.dur * speed) * 1000);
       let pitches = note.note.split('.');
       pitches.forEach(pitch => {
         let octavianNote = new Octavian.Note(pitch.replace('-', 'b'));
-        result.push(new Note(timePassed, duration, octavianNote.pianoKey));
+        result.push(new Note(timePassed, duration, octavianNote.pianoKey + 20));
       });
     });
     console.log('transformation result', result)
@@ -218,7 +186,7 @@
     let progress = timestamp - timeStart;
     clearTrack();
     songToPlay.forEach(note => {
-      let pos = {x: note.x - progress, y: note.pitch * 6};
+      let pos = {x: note.x - progress, y: note.pitch * 4};
       let length = note.duration;
       drawLine(pos, length);
     });
@@ -231,8 +199,8 @@
     songToPlay.forEach(note => {
       setTimeout(() => {
         let playData = {duration: note.dur / 1000};
-        instrument.play(note.pitch, context.currentTime, playData);
-        console.log('playing', note.pitch)
+        instruments.piano.play(note.pitch, context.currentTime, playData);
+        console.log('playing', note)
       }, note.x);
     });
     window.requestAnimationFrame(step);
