@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import music21 as m21
 import tensorflow as tf
@@ -94,6 +95,19 @@ def generate_midi(notes, output='output.mid'):
 
   midi_stream = m21.stream.Stream(output_notes)
   midi_stream.write('midi', fp=output)
+
+def generate_json(notes):
+  offset = 0
+  output_notes = []
+  for chord in notes:
+    vars = chord.split('|')
+	
+    output_notes.append({
+      "note" : vars[0],
+      "off" : vars[1],
+      "dur" : vars[2]
+    })
+  return json.dumps(output_notes)
 
 def convert_midi(path, target_key=None):
   stream = m21.converter.parse(path)

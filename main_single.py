@@ -84,14 +84,14 @@ def train_for_track(notes, offsets, durations):
   my_generator = DataGenerator(x_col=network_input, y_col=network_output, seq=sequence_length, outputs=unique_notes_count, batch_size=64)
 
   # start training
-  model.fit(my_generator, epochs=20, callbacks=callbacks)
+  model.fit(my_generator, epochs=2, callbacks=callbacks)
 
   return model, network_input
 
-def load_data():
-  with open('output/int_to_note.p', 'rb') as fp:
+def load_data(name):
+  with open('model/' + name + '.p', 'rb') as fp:
     int_to_note = pickle.load(fp)
-  model = load_model('output/weights.hdf5')
+  model = load_model('model/' + name + '.hdf5')
   return int_to_note, model
 
 def generate_song(model, network_input, int_to_note, output, length=500):
@@ -101,8 +101,18 @@ def generate_song(model, network_input, int_to_note, output, length=500):
   print('Generated notes\n', prediction_output)
   utils.generate_midi(prediction_output, output) # convert output to a .mid file
 
+def generate_for_server(name, key, instrument):
+  length = 500
+  int_to_note, model = load_data(name)
+  network_input = []
+  for j in range(0, 20):
+    network_input.append(random.randint(0,max(int_to_note.keys())))
+
+  prediction_output = utils.construct_song(model, network_input, int_to_note, length=length) # predict notes in the new song
+  return utils.generate_json(prediction_output)
+
 def main():
-  midis_folder = './midis/n64/'
+  midis_folder = './midis/temp/'
   midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
   midi_files = list(midi_files) # train only on chord files
   print('Converting midis...')
@@ -111,7 +121,7 @@ def main():
   durations = []
   i=0
   for file in midi_files:
-    if i==10:
+    if i==5:
       break
     try:
       _notes, _offsets, _durations = utils.convert_midi(file, target_key='G major')
