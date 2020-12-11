@@ -15,9 +15,9 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
       self.send_header("Content-type", "text/html")
       self.end_headers()
       query = parse_qs(urlparse(self.path).query)
-      # os.chdir('..')
-      # json_string = main_single.generate_for_server('n64', query['key'], query['instrument'])
-      json_string = open('dummy.json', 'r').read()
+      os.chdir('..')
+      json_string = main_single.generate_for_server('n64', query['key'], query['instrument'])
+      os.chdir('./webapp')
       data = json.dumps({'song': json_string})
       self.wfile.write(bytes(data, "utf8"))
       return
