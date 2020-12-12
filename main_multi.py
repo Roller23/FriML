@@ -1,6 +1,7 @@
 import os
 import pickle
 import random
+import json
 import numpy as np
 import music21 as m21
 import tensorflow as tf
@@ -11,6 +12,16 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout, Activation
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 import utils_multi as utils
+
+# Fix for Manjaro, CUDA 11 (pacman -S python-tensorflow-cuda)
+# Fixes: Could not create cudnn handle: CUDNN_STATUS_INTERNAL_ERROR
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
+# xif. If you don't use Manjaro, comment it or something.
 
 def train_for_track(notes, offsets, durations):
   for off, dur in zip(offsets, durations):
@@ -56,11 +67,11 @@ def train_for_track(notes, offsets, durations):
   network_input = np.reshape(network_input, (patterns_count, sequence_length, 1))
   # normalize input
   network_input = network_input / float(unique_notes_count) # normalize input
-  network_output = to_categorical(network_output) # convert the vector to a binary matrix
+  # network_output = to_categorical(network_output) # convert the vector to a binary matrix
 
   dur_network_input = np.reshape(dur_network_input, (dur_patterns_count, sequence_length, 1))
   dur_network_input = dur_network_input / float(unique_durations_count)
-  dur_network_output = to_categorical(dur_network_output)
+  #dur_network_output = to_categorical(dur_network_output)
 
   model, callbacks = utils.create_model(
     (network_input.shape[1], network_input.shape[2]),
@@ -75,9 +86,41 @@ def train_for_track(notes, offsets, durations):
     loss_dest=0.5
   )
 
+  class DataGenerator(tf.keras.utils.Sequence):
+    def __init__(self, x_col, y_col, seq, outputs, batch_size=32):
+      self.batch_size = batch_size
+      self.x_col = x_col
+      self.y_col = y_col
+      self.seq = seq
+      self.outputs = outputs
+
+    def __data_generation(self, index):
+      'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
+      i = index*self.batch_size
+      # Initialization
+      X = np.empty((self.batch_size*self.seq)).reshape(self.batch_size,self.seq,1)
+      y = np.empty((self.batch_size), dtype=int)
+      # Generate data
+      X[:] = self.x_col[i : i+self.batch_size]
+      y[:] = self.y_col[i : i+self.batch_size]
+      return X, keras.utils.to_categorical(y, num_classes=self.outputs)
+
+    def __getitem__(self, index):
+      'Generate one batch of data'
+      X, y = self.__data_generation(index)
+      return X, y
+
+    def __len__(self):
+      'Denotes the number of batches per epoch'
+      return int(np.floor(len(self.y_col)/self.batch_size))
+
+
+  my_generator = DataGenerator(x_col=network_input, y_col=network_output, seq=sequence_length, outputs=unique_notes_count, batch_size=64)
+  dur_generator = DataGenerator(x_col=dur_network_input, y_col=dur_network_output, seq=sequence_length, outputs=unique_durations_count, batch_size=64)
+
   # start training
-  model.fit(network_input, network_output, epochs=10, callbacks=callbacks, batch_size=64)
-  dur_model.fit(dur_network_input, dur_network_output, epochs=10, callbacks=dur_callbacks, batch_size=64)
+  model.fit(my_generator, epochs=100, callbacks=callbacks, batch_size=64)
+  dur_model.fit(dur_generator, epochs=100, callbacks=dur_callbacks, batch_size=64)
 
   return model, dur_model, network_input, dur_network_input
 
@@ -110,6 +153,19 @@ def generate_song(model, network_input, int_to_note, dur_model, dur_input, int_t
   print('Generated durations\n', dur_prediction_output)
   utils.generate_midi(prediction_output, dur_prediction_output, output) # convert output to a .mid file
 
+def generate_for_server(name, dur_name, key, instrument):
+  length = 500
+  int_to_note, model = load_data(name)
+  int_to_duration, dur_model = load_data(dur_name)
+  network_input = []
+  dur_network_input = []
+  for j in range(0, 20):
+    network_input.append(random.randint(0,max(int_to_note.keys())))
+    dur_network_input.append(random.randint(0,max(int_to_duration.keys())))
+
+  prediction_output, dur_prediction_output = utils.construct_song(model, network_input, int_to_note, dur_model, dur_network_input, int_to_duration, length=length) # predict notes in the new song
+  return utils.generate_json(prediction_output, dur_prediction_output)
+
 def main():
   midis_folder = './midis/VGM/'
   midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
@@ -131,6 +187,22 @@ def main():
     offsets.append(_offsets)
     durations.append(_durations)
     i+=1
+
+  with open('output/notes.json', 'w') as fp:
+    json.dump(notes, fp)
+  with open('output/offsets.json', 'w') as fp:
+    json.dump(offsets, fp)
+  for item in durations:
+    for i in range(0, len(item), 1):
+      item[i] = str(item[i])
+  with open('output/durations.json', 'w') as fp:
+    json.dump(durations, fp)
+  # with open('output/notes.json', 'r') as fp:
+  #   notes = json.load(fp)
+  # with open('output/offsets.json', 'r') as fp:
+  #   offsets = json.load(fp)
+  # with open('output/durations.json', 'r') as fp:
+  #   durations = json.load(fp)
 
   print(durations)
   model, dur_model, network_input, dur_network_input = train_for_track(notes, offsets, durations) # TO DO - add support for durations

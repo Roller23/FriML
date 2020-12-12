@@ -115,6 +115,20 @@ def generate_midi(notes, durs, output='output.mid'):
   midi_stream = m21.stream.Stream(output_notes)
   midi_stream.write('midi', fp=output)
 
+def generate_json(notes, durs):
+  offset = 0
+  output_notes = []
+  for chord, dur in zip(notes,durs):
+    vars = dur.split('|')
+
+    output_notes.append({
+      "note" : chord,
+      "off" : vars[0],
+      "dur" : vars[1]
+    })
+  return json.dumps(output_notes)
+
+
 def convert_midi(path, target_key=None):
   stream = m21.converter.parse(path)
   parts = m21.instrument.partitionByInstrument(stream)
