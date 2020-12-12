@@ -124,20 +124,20 @@ def train_for_track(notes, offsets, durations):
 
   return model, dur_model, network_input, dur_network_input
 
-def load_data():
+def load_data(note_name, dur_name):
   # Loading notes data
-  with open('output/int_to_note.p','rb') as fp:
+  with open('model/'+note_name+'.p','rb') as fp:
     int_to_note = pickle.load(fp)
-  with open('output/int_to_duration.p','rb') as fp:
+  with open('model/'+dur_name+'.p','rb') as fp:
     int_to_duration = pickle.load(fp)
-  model = load_model('output/weights.hdf5')
-  model_dur = load_model('output/weights_dur.hdf5')
-  pattern = []
-  pattern_dur = []
-  for i in range(0,20):
-    pattern.append(random.randint(0,max(int_to_note.keys())))
-    pattern_dur.append(random.randint(0,max(int_to_duration.keys())))
-  return int_to_note,model,pattern,int_to_duration,model_dur,pattern_dur
+  model = load_model('model/'+note_name+'.hdf5')
+  model_dur = load_model('model/'+dur_name+'.hdf5')
+  # pattern = []
+  # pattern_dur = []
+  # for i in range(0,20):
+  #   pattern.append(random.randint(0,max(int_to_note.keys())))
+  #   pattern_dur.append(random.randint(0,max(int_to_duration.keys())))
+  return int_to_note,model,int_to_duration,model_dur
 
 def generate_song(model, network_input, int_to_note, dur_model, dur_input, int_to_duration, output, length=500):
   # training finished, generate output song
