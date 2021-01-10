@@ -318,6 +318,8 @@ button {
   text-transform: uppercase;
   font-size: 12px;
   text-align: center;
+  color: white;
+  text-decoration: none;
 }
 .main-container .slider .results .bottom .download-wav.download-wav .desc, .main-container .slider .results .bottom .download-midi.download-wav .desc {
   white-space: nowrap;

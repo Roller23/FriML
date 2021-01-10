@@ -35,7 +35,7 @@ def start_http():
 
 def main():
   # delete old generated files
-  files = glob.glob('../outputs/*')
+  files = glob.glob('outputs/*')
   for f in files:
     os.remove(f)
   start_http()

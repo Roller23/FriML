@@ -130,6 +130,8 @@
     let json = await req('/data', data);
     if (json === null) return;
     console.log(json)
+    get('.download-midi').setAttribute('href', '/outputs/' + json.song.name + '.mid')
+    get('.download-wav').setAttribute('href', '/outputs/' + json.song.name + '.wav')
     songToPlay = transformMidi(json.song.notes);
     console.log('data', json)
   }

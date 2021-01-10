@@ -121,7 +121,7 @@ def generate_for_server(name, key, instrument):
 
   prediction_output = utils.construct_song(model, network_input, int_to_note, length=length) # predict notes in the new song
   rand_name = uuid.uuid4().hex.upper()[0:6]
-  utils.generate_midi(prediction_output, output='outputs/' + rand_name + '.mid')
+  utils.generate_midi(prediction_output, output='webapp/outputs/' + rand_name + '.mid')
   return utils.generate_json(prediction_output, rand_name)
 
 def main():
