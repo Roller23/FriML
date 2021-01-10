@@ -9,6 +9,9 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout, Activation
 from tensorflow.keras.callbacks import ModelCheckpoint
 from pathlib import Path
 
+majors = dict([("A-", 4),("G#", 4),("A", 3),("A#", 2),("B-", 2),("B", 1),("C", 0),("C#", -1),("D-", -1),("D", -2),("D#", -3),("E-", -3),("E", -4),("F", -5),("F#", 6),("G-", 6),("G", 5)])
+minors = dict([("G#", 1), ("A-", 1),("A", 0),("A#", -1),("B-", -1),("B", -2),("C", -3),("C#", -4),("D-", -4),("D", -5),("D#", 6),("E-", 6),("E", 5),("F", 4),("F#", 3),("G-", 3),("G", 2)])
+
 def create_model(shape, density, filename="./output/weights.hdf5", loss_dest=0.0001):
   print('shape', shape)
   Path(filename).parent.mkdir(parents=True, exist_ok=True) # create needed directories if they don't exist
@@ -60,9 +63,16 @@ def construct_song(model, pattern, int_lut, length=200):
     pattern = pattern[1 : len(pattern)]
   return output
 
-def generate_midi(notes, output='output.mid'):
+def generate_midi(notes, instrument='piano', output='output.mid'):
   offset = 0
   output_notes = []
+  i = m21.instrument.ElectricBass
+  if instrument == 'guitar':
+    i = m21.instrument.Guitar
+  if instrument == 'violin':
+    i = m21.instrument.Violin
+  if instrument == 'synth':
+    i = m21.instrument.Violin #idk what here
   for chord in notes:
     vars = chord.split('|')
     dur = 0.0
@@ -81,7 +91,7 @@ def generate_midi(notes, output='output.mid'):
       notes = []
       for current_note in vars[0].split('.'):
         new_note = m21.note.Note(current_note, duration = m21.duration.Duration(dur))
-        new_note.storedInstrument = m21.instrument.Piano()
+        new_note.storedInstrument = i()
         notes.append(new_note)
       new_chord = m21.chord.Chord(notes)
       new_chord.offset = offset
@@ -89,7 +99,7 @@ def generate_midi(notes, output='output.mid'):
     else: # it's a single note
       new_note = m21.note.Note(vars[0], duration = m21.duration.Duration(dur))
       new_note.offset = offset
-      new_note.storedInstrument = m21.instrument.Piano()
+      new_note.storedInstrument = i()
       output_notes.append(new_note)
     offset += off
 
@@ -116,9 +126,18 @@ def convert_midi(path, target_key=None):
   key_str = str(key)
   print('Key detected ' + key_str)
   if target_key != None and key_str != target_key:
-    print('Transposing to ' + target_key)
-    interval = m21.interval.Interval(key.tonic, m21.pitch.Pitch('G'))
-    stream = stream.transpose(interval)
+    # print('Transposing to ' + target_key)
+    # interval = m21.interval.Interval(key.tonic, m21.pitch.Pitch('G'))
+    # stream = stream.transpose(interval)
+    if key.mode == "major":
+      halfSteps = majors[key.tonic.name]
+    elif key.mode == "minor":
+      halfSteps = minors[key.tonic.name]
+
+    stream = stream.transpose(halfSteps)
+    key = stream.analyze('key')
+    print('Transposed to ' + str(key))
+    print(key.tonic.name + key.mode)
     parts = m21.instrument.partitionByInstrument(stream)
   track = None
   if parts:

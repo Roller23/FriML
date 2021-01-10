@@ -119,70 +119,73 @@ def generate_for_server(name, key, instrument):
     network_input.append(random.randint(0,max(int_to_note.keys())))
 
   prediction_output = utils.construct_song(model, network_input, int_to_note, length=length) # predict notes in the new song
+  utils.generate_midi(prediction_output, output="out1.mid")
   return utils.generate_json(prediction_output)
 
 def main():
-  midis_folder = './midis/temp/'
-  midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
-  midi_files = list(midi_files) # train only on chord files
-  print('Converting midis...')
-  notes = []
-  offsets = []
-  durations = []
-  i=0
-  for file in midi_files:
-    if i==5:
-      break
-    try:
-      _notes, _offsets, _durations = utils.convert_midi(file, target_key='G major')
-    except:
-      os.remove(file)
+#   midis_folder = './midis/n64_small/'
+#   midi_files = map(lambda f: midis_folder + f, os.listdir(midis_folder))
+#   midi_files = list(midi_files) # train only on chord files
+#   print('Converting midis...')
+#   notes = []
+#   offsets = []
+#   durations = []
+#   i=0
+#   for file in midi_files:
+#     if i==400:
+#       break
+#     try:
+#       _notes, _offsets, _durations = utils.convert_midi(file, target_key='G major')
+#     except:
+#       os.remove(file)
     
-    notes.append(_notes)
-    offsets.append(_offsets)
-    durations.append(_durations)
-    i+=1
+#     notes.append(_notes)
+#     offsets.append(_offsets)
+#     durations.append(_durations)
+#     i+=1
 
-  with open('output/notes.json', 'w') as fp:
-    json.dump(notes, fp)
-  with open('output/offsets.json', 'w') as fp:
-    json.dump(offsets, fp)
-  for item in durations:
-    for i in range(0, len(item), 1):
-      item[i] = str(item[i])
-  with open('output/durations.json', 'w') as fp:
-    json.dump(durations, fp)
-  # with open('output/notes.json', 'r') as fp:
-  #   notes = json.load(fp)
-  # with open('output/offsets.json', 'r') as fp:
-  #   offsets = json.load(fp)
-  # with open('output/durations.json', 'r') as fp:
-  #   durations = json.load(fp)
+#   with open('output/notes.json', 'w') as fp:
+#     json.dump(notes, fp)
+#   with open('output/offsets.json', 'w') as fp:
+#     json.dump(offsets, fp)
+#   for item in durations:
+#     for i in range(0, len(item), 1):
+#       item[i] = str(item[i])
+#   with open('output/durations.json', 'w') as fp:
+#     json.dump(durations, fp)
+#   with open('output/classical_piano_old/notes.json', 'r') as fp:
+#     notes = json.load(fp)
+#   with open('output/classical_piano_old/offsets.json', 'r') as fp:
+#     offsets = json.load(fp)
+#   with open('output/classical_piano_old/durations.json', 'r') as fp:
+#     durations = json.load(fp)
 
-  model, network_input = train_for_track(notes, offsets, durations)
-  print('Done')
-  i = 0
+  print(generate_for_server("n64_small", "a", "a"))
 
-  pitches = utils.get_unique_pitches(notes)
-  int_to_note = dict((number, note) for number, note in enumerate(pitches)) # [key => value] = [int => string]
-  with open('output/int_to_note.p', 'wb') as fp:
-    pickle.dump(int_to_note, fp, protocol=pickle.DEFAULT_PROTOCOL)
+#   model, network_input = train_for_track(notes, offsets, durations)
+#   print('Done')
+#   i = 0
 
-  # int_to_note, model = load_data()
+#   pitches = utils.get_unique_pitches(notes)
+#   int_to_note = dict((number, note) for number, note in enumerate(pitches)) # [key => value] = [int => string]
+#   with open('output/int_to_note.p', 'wb') as fp:
+#     pickle.dump(int_to_note, fp, protocol=pickle.DEFAULT_PROTOCOL)
+
+#   # int_to_note, model = load_data()
   
-  i = 0
-  while True:	
-    try:
-      pattern = []
-      for j in range(0, 20):
-        pattern.append(random.randint(0,max(int_to_note.keys())))
-      generate_song(model, pattern, int_to_note, 'output'+str(i)+'.mid')
-    except Exception as e:
-      print(e)
-    i+=1
-    print("Continue?")
-    if input()=='n':
-      break
+#   i = 0
+#   while True:	
+#     try:
+#       pattern = []
+#       for j in range(0, 20):
+#         pattern.append(random.randint(0,max(int_to_note.keys())))
+#       generate_song(model, pattern, int_to_note, 'output'+str(i)+'.mid')
+#     except Exception as e:
+#       print(e)
+#     i+=1
+#     print("Continue?")
+#     if input()=='n':
+#       break
 
 if __name__ == '__main__':
   main()

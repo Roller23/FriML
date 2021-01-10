@@ -15,10 +15,12 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
       self.send_header("Content-type", "text/html")
       self.end_headers()
       query = parse_qs(urlparse(self.path).query)
-      # os.chdir('..')
-      # json_string = main_single.generate_for_server('n64', query['key'], query['instrument'])
-      json_string = open('dummy.json', 'r').read()
+    #   os.chdir('..')
+    #   json_string = main_single.generate_for_server('n64', query['key'], query['instrument'])
+      json_string = open('dummy2.json', 'r').read()
       data = json.dumps({'song': json_string})
+    #   print("Done")
+    #   os.chdir('./webapp/')
       self.wfile.write(bytes(data, "utf8"))
       return
     return http.server.SimpleHTTPRequestHandler.do_GET(self)
@@ -26,7 +28,7 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
 
 def start_http():
   socketserver.TCPServer.allow_reuse_address = True
-  with socketserver.TCPServer(("", 80), HttpHandler) as httpd:
+  with socketserver.TCPServer(("", 8000), HttpHandler) as httpd:
     httpd.serve_forever()
 
 def main():
