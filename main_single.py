@@ -6,6 +6,7 @@ import numpy as np
 import music21 as m21
 import tensorflow as tf
 import uuid
+from midi2audio import FluidSynth
 from tensorflow import keras
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import load_model
@@ -121,7 +122,10 @@ def generate_for_server(name, key, instrument):
 
   prediction_output = utils.construct_song(model, network_input, int_to_note, length=length) # predict notes in the new song
   rand_name = uuid.uuid4().hex.upper()[0:6]
-  utils.generate_midi(prediction_output, output='webapp/outputs/' + rand_name + '.mid')
+  output_path = 'webapp/outputs/' + rand_name + '.mid'
+  wav_path = 'webapp/outputs/' + rand_name + '.wav'
+  utils.generate_midi(prediction_output, output=output_path)
+  FluidSynth('general.sf2').midi_to_audio(output_path, wav_path)
   return utils.generate_json(prediction_output, rand_name)
 
 def main():
