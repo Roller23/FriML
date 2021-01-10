@@ -7,6 +7,7 @@ import os
 import sys
 sys.path.append("../")
 import main_single
+import glob
 
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
   def do_GET(self):
@@ -33,6 +34,10 @@ def start_http():
     httpd.serve_forever()
 
 def main():
+  # delete old generated files
+  files = glob.glob('../outputs/*')
+  for f in files:
+    os.remove(f)
   start_http()
 
 if __name__ == "__main__":

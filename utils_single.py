@@ -106,8 +106,9 @@ def generate_midi(notes, instrument='piano', output='output.mid'):
   midi_stream = m21.stream.Stream(output_notes)
   midi_stream.write('midi', fp=output)
 
-def generate_json(notes):
+def generate_json(notes, out_name):
   offset = 0
+  response = {}
   output_notes = []
   for chord in notes:
     vars = chord.split('|')
@@ -117,7 +118,9 @@ def generate_json(notes):
       "off" : vars[1],
       "dur" : vars[2]
     })
-  return json.dumps(output_notes)
+  response['notes'] = output_notes
+  response['name'] = out_name
+  return json.dumps(response)
 
 def convert_midi(path, target_key=None):
   stream = m21.converter.parse(path)

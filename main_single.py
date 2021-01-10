@@ -5,6 +5,7 @@ import json
 import numpy as np
 import music21 as m21
 import tensorflow as tf
+import uuid
 from tensorflow import keras
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import load_model
@@ -119,8 +120,9 @@ def generate_for_server(name, key, instrument):
     network_input.append(random.randint(0,max(int_to_note.keys())))
 
   prediction_output = utils.construct_song(model, network_input, int_to_note, length=length) # predict notes in the new song
-  utils.generate_midi(prediction_output, output="out1.mid")
-  return utils.generate_json(prediction_output)
+  rand_name = uuid.uuid4().hex.upper()[0:6]
+  utils.generate_midi(prediction_output, output='outputs/' + rand_name + '.mid')
+  return utils.generate_json(prediction_output, rand_name)
 
 def main():
 #   midis_folder = './midis/n64_small/'

@@ -129,7 +129,8 @@
     let data = {genre: selectedGenre, key: selectedKey, instrument: selectedInstrument};
     let json = await req('/data', data);
     if (json === null) return;
-    songToPlay = transformMidi(json.song);
+    console.log(json)
+    songToPlay = transformMidi(json.song.notes);
     console.log('data', json)
   }
 
