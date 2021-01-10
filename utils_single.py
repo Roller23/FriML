@@ -105,6 +105,11 @@ def generate_midi(notes, instrument='piano', output='output.mid'):
 
   midi_stream = m21.stream.Stream(output_notes)
   midi_stream.write('midi', fp=output)
+  # insert the desired instrument
+  s = m21.converter.parse(output)
+  for p in s.parts:
+    p.insert(0, i())
+  s.write('midi', output)
 
 def generate_json(notes, out_name):
   offset = 0

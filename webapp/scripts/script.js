@@ -6,7 +6,7 @@
     instruments.piano = device;
     console.log('Piano loaded');
   });
-  Soundfont.instrument(context, 'distortion_guitar').then(device => {
+  Soundfont.instrument(context, 'acoustic_guitar_nylon').then(device => {
     instruments.guitar = device;
     console.log('Guitar loaded');
   });
@@ -184,6 +184,7 @@
   let songToPlay = null;
   let songPlaying = false;
   let timeStart = -1;
+  let timeouts = []
 
   function step(timestamp) {
     if (!songPlaying) return;
@@ -201,14 +202,14 @@
     window.requestAnimationFrame(step);
   }
 
-  get('.controls .play').on('click', e => {
+  function startSong(e) {
     if (songPlaying) return;
     songPlaying = true;
     songToPlay.forEach((note, i) => {
-      setTimeout(() => {
+      let timeout = setTimeout(() => {
         let playData = {duration: note.dur / 1000};
         // instruments.piano.play(note.pitch, context.currentTime, playData);
-        instruments.piano.play(note.pitch);
+        instruments[selectedInstrument].play(note.pitch);
         console.log('playing', note);
         if (i === songToPlay.length - 1) {
           setTimeout(() => {
@@ -217,8 +218,20 @@
           }, note.dur + 500);
         }
       }, note.x);
+      timeouts.push(timeout)
     });
     window.requestAnimationFrame(step);
+  }
+
+  get('.controls .play').on('click', startSong);
+
+  get('.controls .replay').on('click', e => {
+    if (!songPlaying) return;
+    songPlaying = false;
+    timeouts.forEach(t => clearTimeout(t));
+    timeStart = -1;
+    timeouts = []
+    startSong(null);
   });
 
 })();
