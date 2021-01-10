@@ -2,7 +2,7 @@
   let instruments = {};
   let context = new AudioContext();
   let envelope = context.createGain();
-  Soundfont.instrument(context, 'bright_acoustic_piano', /*{release: 0, sustain: 1}*/).then(device => {
+  Soundfont.instrument(context, 'bright_acoustic_piano', {release: 0, sustain: 1}).then(device => {
     instruments.piano = device;
     console.log('Piano loaded');
   });
@@ -160,14 +160,18 @@
   function transformMidi(midi) {
     let result = [];
     let timePassed = 0;
-    let speed = 0.8;
+    let speed = 1;
     midi.forEach(note => {
-      timePassed += Math.floor(eval(note.off * speed) * 1000);
-      let duration = Math.floor(eval(note.dur * speed) * 1000);
+      timePassed += Math.floor(eval(note.off) * speed * 1000);
+      let duration = Math.floor(eval(note.dur) * speed * 1000);
       let pitches = note.note.split('.');
       pitches.forEach(pitch => {
-        let octavianNote = new Octavian.Note(pitch.replace('-', 'b'));
-        result.push(new Note(timePassed, duration, octavianNote.pianoKey + 20));
+        try {
+          let octavianNote = new Octavian.Note(pitch.replace('-', 'b'));
+          result.push(new Note(timePassed, duration, octavianNote.pianoKey + 20));
+        } catch (e) {
+          console.log("Couldn't convert", note);
+        }
       });
     });
     console.log('transformation result', result)
@@ -179,6 +183,7 @@
   let timeStart = -1;
 
   function step(timestamp) {
+    if (!songPlaying) return;
     if (timeStart === -1) {
       timeStart = timestamp;
       return window.requestAnimationFrame(step);
@@ -196,11 +201,18 @@
   get('.controls .play').on('click', e => {
     if (songPlaying) return;
     songPlaying = true;
-    songToPlay.forEach(note => {
+    songToPlay.forEach((note, i) => {
       setTimeout(() => {
         let playData = {duration: note.dur / 1000};
-        instruments.piano.play(note.pitch, context.currentTime, playData);
-        console.log('playing', note)
+        // instruments.piano.play(note.pitch, context.currentTime, playData);
+        instruments.piano.play(note.pitch);
+        console.log('playing', note);
+        if (i === songToPlay.length - 1) {
+          setTimeout(() => {
+            songPlaying = false;
+            timeStart = -1;
+          }, note.dur + 500);
+        }
       }, note.x);
     });
     window.requestAnimationFrame(step);
