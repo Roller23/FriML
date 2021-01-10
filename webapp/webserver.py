@@ -5,9 +5,10 @@ from urllib.parse import urlparse
 from urllib.parse import parse_qs
 import os
 import sys
+import glob
+
 sys.path.append("../")
 import main_single
-import glob
 
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
   def do_GET(self):
