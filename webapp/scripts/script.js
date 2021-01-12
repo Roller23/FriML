@@ -125,14 +125,25 @@
     get('.slider > .instruments').classList.add('hidden');
     get('.slider > .results').classList.remove('waiting');
     get('.slider').classList.add('expanded');
+
+    get('.loading-screen').style.display = 'block';
+    get('.loading-screen').classList.add('visible');
+
     console.log(selectedGenre, selectedKey, selectedInstrument);
     let data = {genre: selectedGenre, key: selectedKey, instrument: selectedInstrument};
     let json = await req('/data', data);
-    if (json === null) return;
+    if (json === null) {
+      get('.loading-screen .text').innerText = 'Błąd serwera!';
+      return;
+    }
     console.log(json)
     get('.download-midi').setAttribute('href', '/outputs/' + json.song.name + '.mid')
     get('.download-wav').setAttribute('href', '/outputs/' + json.song.name + '.wav')
     songToPlay = transformMidi(json.song.notes);
+
+    get('.loading-screen').classList.remove('visible');
+    setTimeout(() => get('.loading-screen').style.display = 'none', 700);
+
     console.log('data', json)
   }
 

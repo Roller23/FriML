@@ -66,13 +66,13 @@ def construct_song(model, pattern, int_lut, length=200):
 def generate_midi(notes, instrument='piano', output='output.mid'):
   offset = 0
   output_notes = []
-  i = m21.instrument.ElectricBass
+  i = m21.instrument.Piano
   if instrument == 'guitar':
     i = m21.instrument.Guitar
   if instrument == 'violin':
     i = m21.instrument.Violin
   if instrument == 'synth':
-    i = m21.instrument.Violin #idk what here
+    i = m21.instrument.ElectricBass
   for chord in notes:
     vars = chord.split('|')
     dur = 0.0
