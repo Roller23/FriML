@@ -63,7 +63,7 @@ def construct_song(model, pattern, int_lut, length=200):
     pattern = pattern[1 : len(pattern)]
   return output
 
-def generate_midi(notes, instrument='piano', output='output.mid'):
+def generate_midi(notes, key='C', instrument='piano', output='output.mid'):
   offset = 0
   output_notes = []
   i = m21.instrument.Piano
@@ -109,6 +109,9 @@ def generate_midi(notes, instrument='piano', output='output.mid'):
   s = m21.converter.parse(output)
   for p in s.parts:
     p.insert(0, i())
+  k = s.analyze('key')
+  ivl = m21.interval.Interval(k.tonic, m21.pitch.Pitch(key))
+  s = s.transpose(ivl)
   s.write('midi', output)
 
 def generate_json(notes, out_name):

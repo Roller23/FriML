@@ -18,12 +18,12 @@ import utils_single as utils
 
 # # Fix for Manjaro, CUDA 11 (pacman -S python-tensorflow-cuda)
 # # Fixes: Could not create cudnn handle: CUDNN_STATUS_INTERNAL_ERROR
-# from tensorflow.compat.v1 import ConfigProto
-# from tensorflow.compat.v1 import InteractiveSession
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
 
-# config = ConfigProto()
-# config.gpu_options.allow_growth = True
-# session = InteractiveSession(config=config)
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
 # # xif. If you don't use Manjaro, comment it or something.
 
 def train_for_track(notes, offsets, durations):
@@ -114,6 +114,7 @@ def generate_song(model, network_input, int_to_note, output, length=500):
   utils.generate_midi(prediction_output, output) # convert output to a .mid file
 
 def generate_for_server(name, key, instrument):
+  name = 'rock'
   length = 500
   int_to_note, model = load_data(name)
   network_input = []
@@ -124,7 +125,7 @@ def generate_for_server(name, key, instrument):
   rand_name = uuid.uuid4().hex.upper()[0:6]
   output_path = 'webapp/outputs/' + rand_name + '.mid'
   wav_path = 'webapp/outputs/' + rand_name + '.wav'
-  utils.generate_midi(prediction_output, instrument, output_path)
+  utils.generate_midi(prediction_output, key, instrument, output_path)
   FluidSynth('FluidR3_GM.sf2').midi_to_audio(output_path, wav_path)
   return utils.generate_json(prediction_output, rand_name)
 
