@@ -18,12 +18,12 @@ import utils_single as utils
 
 # # Fix for Manjaro, CUDA 11 (pacman -S python-tensorflow-cuda)
 # # Fixes: Could not create cudnn handle: CUDNN_STATUS_INTERNAL_ERROR
-from tensorflow.compat.v1 import ConfigProto
-from tensorflow.compat.v1 import InteractiveSession
+# from tensorflow.compat.v1 import ConfigProto
+# from tensorflow.compat.v1 import InteractiveSession
 
-config = ConfigProto()
-config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
+# config = ConfigProto()
+# config.gpu_options.allow_growth = True
+# session = InteractiveSession(config=config)
 # # xif. If you don't use Manjaro, comment it or something.
 
 def train_for_track(notes, offsets, durations):
