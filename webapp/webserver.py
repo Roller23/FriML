@@ -50,6 +50,7 @@ async def request_song(data, socket):
   global max_requests
   if pending_requests >= max_requests:
     queue.append((data, socket))
+    await emit(socket, 'queued', len(queue))
     return
   pending_requests += 1
   threading.Thread(target=generate_song, args=(data, socket)).start()
