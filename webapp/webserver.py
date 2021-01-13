@@ -44,7 +44,7 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
       try:
         json_string = main_single.generate_for_server(q['genre'][0], q['key'][0], q['instrument'][0])
       except Exception as err:
-        print(err)
+        print('Exception: ' + str(err))
       os.chdir('./webapp')
       data = json.dumps({'song': json_string})
       print('sending data')
