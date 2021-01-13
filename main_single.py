@@ -119,7 +119,7 @@ def generate_for_server(name, key, instrument):
   output_path = 'webapp/outputs/' + rand_name + '.mid'
   wav_path = 'webapp/outputs/' + rand_name + '.wav'
   utils.generate_midi(prediction_output, key, instrument, output_path)
-  FluidSynth('FluidR3_GM.sf2').midi_to_audio(output_path, wav_path)
+  # FluidSynth('FluidR3_GM.sf2').midi_to_audio(output_path, wav_path)
   return utils.generate_json(prediction_output, rand_name)
 
 def main():
