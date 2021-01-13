@@ -88,7 +88,7 @@ def start_http():
     print('sending data')
     current_clients -= 1
     return json.dumps({'song': json_string})
-  app.run(host='0.0.0.0', port=port, processes=(max_clients + 1), threaded=False)
+  app.run(host='0.0.0.0', port=port, threaded=True)
 
 def main():
   # delete old generated files
