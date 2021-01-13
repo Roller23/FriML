@@ -33,6 +33,7 @@ def sync_emit(socket, event, data):
 async def ws_server(websocket, path):
   try:
     message = json.loads(await websocket.recv())
+    print(message)
   except:
     return
   if message['event'] in handlers:
@@ -62,7 +63,7 @@ def generate_song(data, socket):
   global pending_requests
   data = ''
   json_string = ''
-  print('data for song ' + str(data))
+  print('data for song ' + data['genre'] + ' ' + data['key'] + ' ' + data['instrument'])
   os.chdir('..')
   try:
     json_string = main_single.generate_for_server(data['genre'], data['key'], data['instrument'])
