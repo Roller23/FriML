@@ -61,6 +61,7 @@ def generate_song(data, socket):
   global pending_requests
   data = ''
   json_string = ''
+  print('data for song ' + str(data))
   os.chdir('..')
   try:
     json_string = main_single.generate_for_server(data['genre'], data['key'], data['instrument'])
