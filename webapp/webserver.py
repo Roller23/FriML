@@ -58,7 +58,7 @@ async def request_song(data, socket):
 on('ping', ping)
 on('song', request_song)
 
-def generate_song(data, socket):
+async def generate_song(data, socket):
   global pending_requests
   data = ''
   json_string = ''
@@ -74,8 +74,7 @@ def generate_song(data, socket):
   os.chdir('./webapp')
   data = json.dumps({'song': json_string})
   print('sending data')
-  sync_emit(socket, 'song', data)
-  time.sleep(1.0)
+  await emit(socket, 'song', data)
   pending_requests -= 1
   if len(queue) > 0:
     d, s = queue.pop()
