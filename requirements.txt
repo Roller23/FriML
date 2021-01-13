@@ -1,4 +1,5 @@
 numpy
 music21==6.5.0
 tensorflow-cpu
+Keras
 midi2audio
