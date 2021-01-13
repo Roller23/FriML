@@ -11,6 +11,9 @@ from pathlib import Path
 sys.path.append('../')
 import main_single
 
+from flask import Flask, request
+from flask_cors import CORS
+
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
   def end_headers(self):
     self.send_header('Access-Control-Allow-Origin', '*')
@@ -46,11 +49,35 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
     
 
 def start_http():
+  # port = int(os.environ.get("PORT", 5000))
+  # socketserver.TCPServer.allow_reuse_address = True
+  # with socketserver.TCPServer(('', port), HttpHandler) as httpd:
+  #   print('http server started on port ' + str(port))
+  #   httpd.serve_forever()
   port = int(os.environ.get("PORT", 5000))
-  socketserver.TCPServer.allow_reuse_address = True
-  with socketserver.TCPServer(('', port), HttpHandler) as httpd:
-    print('http server started on port ' + str(port))
-    httpd.serve_forever()
+  app = Flask(port=port, processes=3)
+  CORS(app)
+  @app.route('/check')
+  def check():
+    return json.dumps({'clients': 0, 'available': True, 'queue': 0})
+
+  @app.route('/data')
+  def data():
+    data = ''
+    q = {
+      'genre': request.args.get('genre'),
+      'key': request.args.get('key'),
+      'instrument': request.args.get('instrument')
+    }
+    json_string = ''
+    os.chdir('..')
+    try:
+      json_string = main_single.generate_for_server(q['genre'], q['key'], q['instrument'])
+    except Exception as err:
+      print('Exception: ' + str(err))
+    os.chdir('./webapp')
+    print('sending data')
+    return json.dumps({'song': json_string})
 
 def main():
   # delete old generated files
