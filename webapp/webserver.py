@@ -77,7 +77,7 @@ def start_http():
     os.chdir('./webapp')
     print('sending data')
     return json.dumps({'song': json_string})
-  app.run(port=port, processes=3, threaded=False)
+  app.run(host='0.0.0.0', port=port, processes=2, threaded=False)
 
 def main():
   # delete old generated files
