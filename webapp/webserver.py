@@ -33,7 +33,6 @@ def sync_emit(socket, event, data):
 async def ws_server(websocket, path):
   try:
     message = json.loads(await websocket.recv())
-    print(message['data'])
   except:
     return
   if message['event'] in handlers:
@@ -49,8 +48,6 @@ async def ping(message, socket):
 async def request_song(data, socket):
   global pending_requests
   global max_requests
-  print('request song')
-  print(data)
   if pending_requests >= max_requests:
     queue.append((data, socket))
     await emit(socket, 'queued', len(queue))
@@ -65,7 +62,10 @@ def generate_song(data, socket):
   global pending_requests
   data = ''
   json_string = ''
-  print('data for song ' + data['genre'] + ' ' + data['key'] + ' ' + data['instrument'])
+  print('generate song')
+  print(data)
+  print(len(data))
+  print(type(data))
   os.chdir('..')
   try:
     json_string = main_single.generate_for_server(data['genre'], data['key'], data['instrument'])
