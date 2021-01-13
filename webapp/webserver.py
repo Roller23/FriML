@@ -55,7 +55,7 @@ def start_http():
   #   print('http server started on port ' + str(port))
   #   httpd.serve_forever()
   port = int(os.environ.get("PORT", 5000))
-  app = Flask(port=port, processes=3)
+  app = Flask(__name__)
   CORS(app)
   @app.route('/check')
   def check():
@@ -63,7 +63,6 @@ def start_http():
 
   @app.route('/data')
   def data():
-    data = ''
     q = {
       'genre': request.args.get('genre'),
       'key': request.args.get('key'),
@@ -78,6 +77,7 @@ def start_http():
     os.chdir('./webapp')
     print('sending data')
     return json.dumps({'song': json_string})
+  app.run(port=port, processes=3, threaded=False)
 
 def main():
   # delete old generated files
