@@ -1,3 +1,4 @@
 numpy
 music21==6.5.0
 tensorflow
+midi2audio
