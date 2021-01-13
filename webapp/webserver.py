@@ -62,11 +62,12 @@ def start_http():
     httpd.serve_forever()
 
 def main():
+  print('test')
   # delete old generated files
-  Path('outputs').mkdir(parents=True, exist_ok=True)
-  for f in glob.glob('outputs/*'):
-    os.remove(f)
-  start_http()
+  # Path('outputs').mkdir(parents=True, exist_ok=True)
+  # for f in glob.glob('outputs/*'):
+  #   os.remove(f)
+  # start_http()
 
 if __name__ == '__main__':
   main()
