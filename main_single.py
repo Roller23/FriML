@@ -1,18 +1,11 @@
-import os
 import pickle
 import random
-import json
 import numpy as np
-import music21 as m21
 import tensorflow as tf
 import uuid
 from midi2audio import FluidSynth
 from tensorflow import keras
-from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import load_model
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout, Activation
-from tensorflow.keras.callbacks import ModelCheckpoint
 
 import utils_single as utils
 
