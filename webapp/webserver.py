@@ -33,7 +33,7 @@ def sync_emit(socket, event, data):
 async def ws_server(websocket, path):
   try:
     message = json.loads(await websocket.recv())
-    print(message)
+    print(message['data'])
   except:
     return
   if message['event'] in handlers:
@@ -49,6 +49,8 @@ async def ping(message, socket):
 async def request_song(data, socket):
   global pending_requests
   global max_requests
+  print('request song')
+  print(data)
   if pending_requests >= max_requests:
     queue.append((data, socket))
     await emit(socket, 'queued', len(queue))
