@@ -1,4 +1,4 @@
 numpy
 music21==6.5.0
-tensorflow==2.1.0
+tensorflow==2.2.0
 midi2audio
