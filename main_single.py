@@ -122,7 +122,7 @@ def generate_for_server(name, key, instrument):
     network_input.append(random.randint(0,max(int_to_note.keys())))
 
   prediction_output = utils.construct_song(model, network_input, int_to_note, length=length) # predict notes in the new song
-  rand_name = uuid.uuid4().hex.upper()[0:6]
+  rand_name = uuid.uuid4().hex[0:6]
   output_path = 'webapp/outputs/' + rand_name + '.mid'
   wav_path = 'webapp/outputs/' + rand_name + '.wav'
   utils.generate_midi(prediction_output, key, instrument, output_path)

@@ -43,8 +43,7 @@ def create_model(shape, density, filename="./output/weights.hdf5", loss_dest=0.0
       if (logs.get('loss') <= loss_dest): # stop at certain loss
         print("\nReached predefined loss, training finished early\n")
         self.model.stop_training = True
-  trainingStopCallback = haltCallback()
-  callbacks_list.append(trainingStopCallback)
+  callbacks_list.append(haltCallback())
   return (model, callbacks_list)
 
 def construct_song(model, pattern, int_lut, length=200):

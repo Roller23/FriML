@@ -14,7 +14,7 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
   processed_clients = 0
   max_clients = 1
 
-  def end_headers (self):
+  def end_headers(self):
     self.send_header('Access-Control-Allow-Origin', '*')
     http.server.SimpleHTTPRequestHandler.end_headers(self)
   
@@ -54,7 +54,7 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
     
 
 def start_http():
-  port = 8000
+  port = 80
   socketserver.TCPServer.allow_reuse_address = True
   with socketserver.TCPServer(('', port), HttpHandler) as httpd:
     print('http server started on port ' + str(port))
