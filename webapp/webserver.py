@@ -11,13 +11,6 @@ from pathlib import Path
 sys.path.append('../')
 import main_single
 
-from flask import Flask, request
-from flask_cors import CORS
-
-max_clients = 1
-current_clients = 0
-average_time = 30
-
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
   def end_headers(self):
     self.send_header('Access-Control-Allow-Origin', '*')
@@ -58,35 +51,6 @@ def start_http():
   with socketserver.TCPServer(('', port), HttpHandler) as httpd:
     print('http server started on port ' + str(port))
     httpd.serve_forever()
-  # port = int(os.environ.get("PORT", 5000))
-  # app = Flask(__name__)
-  # CORS(app)
-  # @app.route('/check')
-  # def check():
-  #   global current_clients
-  #   global max_clients
-  #   global average_time
-  #   full = current_clients >= max_clients
-  #   return json.dumps({'available': not full, 'time': average_time})
-
-  # @app.route('/data')
-  # def data():
-  #   global current_clients
-  #   current_clients += 1
-  #   genre = request.args.get('genre'),
-  #   key = request.args.get('key'),
-  #   instrument = request.args.get('instrument')
-  #   json_string = ''
-  #   os.chdir('..')
-  #   try:
-  #     json_string = main_single.generate_for_server(genre, key, instrument)
-  #   except Exception as err:
-  #     print('Exception: ' + str(err))
-  #   os.chdir('./webapp')
-  #   print('sending data')
-  #   current_clients -= 1
-  #   return json.dumps({'song': json_string})
-  # app.run(host='0.0.0.0', port=port, threaded=False)
 
 def main():
   # delete old generated files
