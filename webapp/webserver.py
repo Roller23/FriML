@@ -6,6 +6,7 @@ from urllib.parse import parse_qs
 import os
 import sys
 import glob
+from pathlib import Path
 
 sys.path.append('../')
 import main_single
@@ -54,7 +55,7 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
     
 
 def start_http():
-  port = 80
+  port = int(os.environ.get("PORT", 5000))
   socketserver.TCPServer.allow_reuse_address = True
   with socketserver.TCPServer(('', port), HttpHandler) as httpd:
     print('http server started on port ' + str(port))
@@ -62,6 +63,7 @@ def start_http():
 
 def main():
   # delete old generated files
+  Path('outputs').mkdir(parents=True, exist_ok=True)
   for f in glob.glob('outputs/*'):
     os.remove(f)
   start_http()
