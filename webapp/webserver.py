@@ -16,6 +16,7 @@ from flask_cors import CORS
 
 max_clients = 1
 current_clients = 0
+average_time = 30
 
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
   def end_headers(self):
@@ -62,11 +63,15 @@ def start_http():
   CORS(app)
   @app.route('/check')
   def check():
+    global current_clients
+    global max_clients
+    global average_time
     full = current_clients >= max_clients
-    return json.dumps({'available': not full, 'queue': (max_clients - current_clients + 1)})
+    return json.dumps({'available': not full, 'time': average_time})
 
   @app.route('/data')
   def data():
+    global current_clients
     current_clients += 1
     q = {
       'genre': request.args.get('genre'),
