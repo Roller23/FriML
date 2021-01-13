@@ -9,7 +9,7 @@ import glob
 from pathlib import Path
 
 sys.path.append('../')
-import main_single
+# import main_single
 
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
   processed_clients = 0
@@ -42,7 +42,8 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
       json_string = ''
       os.chdir('..')
       try:
-        json_string = main_single.generate_for_server(q['genre'][0], q['key'][0], q['instrument'][0])
+        pass
+        # json_string = main_single.generate_for_server(q['genre'][0], q['key'][0], q['instrument'][0])
       except Exception as err:
         print(err)
       os.chdir('./webapp')
