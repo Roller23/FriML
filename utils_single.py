@@ -101,6 +101,7 @@ def generate_midi(notes, key='C', instrument='piano', output='output.mid'):
     offset += off
 
   midi_stream = m21.stream.Stream(output_notes)
+  Path(output).parent.mkdir(parents=True, exist_ok=True)
   midi_stream.write('midi', fp=output)
   # insert the desired instrument
   s = m21.converter.parse(output)

@@ -1,4 +1,4 @@
-numpy==1.19.0
+numpy==1.16.0
 music21==6.5.0
 tensorflow-cpu==2.3.0
 midi2audio
