@@ -16,6 +16,7 @@ sys.path.append('../')
 import main_single
 
 queue = []
+pending_clients = []
 max_requests = 1
 pending_requests = 0
 
@@ -48,11 +49,13 @@ async def ping(message, socket):
 async def request_song(data, socket):
   global pending_requests
   global max_requests
+  global queue
   if pending_requests >= max_requests:
     queue.append((data, socket))
     await emit(socket, 'queued', len(queue))
     return
   pending_requests += 1
+  pending_clients.append(socket)
   thread = threading.Thread(target=asyncio.run, args=(
     generate_song(data, socket),
   ))
@@ -63,12 +66,15 @@ on('song', request_song)
 
 async def generate_song(data, socket):
   global pending_requests
+  global queue
   data = ''
   json_string = ''
   os.chdir('..')
+  print(data)
+  print(socket)
   try:
-    # json_string = main_single.generate_for_server(data['genre'], data['key'], data['instrument'])
-    json_string = main_single.generate_for_server('rock', 'C', 'piano')
+    json_string = main_single.generate_for_server(data['genre'], data['key'], data['instrument'])
+    # json_string = main_single.generate_for_server('rock', 'C', 'piano')
   except Exception as err:
     print('Exception: ' + str(err))
   os.chdir('./webapp')
