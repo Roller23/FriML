@@ -27,6 +27,7 @@ async def emit(event, data):
 async def ws_server(websocket, path):
   global ws
   ws = websocket
+  print('websocket ' + str(websocket))
   while True:
     try:
       message = json.loads(await ws.recv())
@@ -40,7 +41,7 @@ async def ws_server(websocket, path):
 
 async def ping(message):
   print('got ping ' + message)
-  emit('pong', 'Hello JS')
+  await emit('pong', 'Hello JS')
 
 on('ping', ping)
 
