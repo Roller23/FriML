@@ -24,7 +24,7 @@ def on(event, callback):
 async def emit(event, data):
   await ws.send(json.dumps({'event': event, 'data': data}))
 
-async def ws_server(websocket):
+async def ws_server(websocket, path):
   global ws
   ws = websocket
   while True:
