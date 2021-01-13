@@ -14,6 +14,9 @@ import main_single
 from flask import Flask, request
 from flask_cors import CORS
 
+max_clients = 1
+current_clients = 0
+
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
   def end_headers(self):
     self.send_header('Access-Control-Allow-Origin', '*')
@@ -59,10 +62,12 @@ def start_http():
   CORS(app)
   @app.route('/check')
   def check():
-    return json.dumps({'clients': 0, 'available': True, 'queue': 0})
+    full = current_clients >= max_clients
+    return json.dumps({'available': not full, 'queue': (max_clients - current_clients + 1)})
 
   @app.route('/data')
   def data():
+    current_clients += 1
     q = {
       'genre': request.args.get('genre'),
       'key': request.args.get('key'),
@@ -76,8 +81,9 @@ def start_http():
       print('Exception: ' + str(err))
     os.chdir('./webapp')
     print('sending data')
+    current_clients -= 1
     return json.dumps({'song': json_string})
-  app.run(host='0.0.0.0', port=port, processes=2, threaded=False)
+  app.run(host='0.0.0.0', port=port, processes=(max_clients + 1), threaded=False)
 
 def main():
   # delete old generated files
