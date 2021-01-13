@@ -1,5 +1,6 @@
 import http.server
 import socketserver
+import time
 import asyncio
 import websockets
 import threading
@@ -14,36 +15,66 @@ from pathlib import Path
 sys.path.append('../')
 import main_single
 
+queue = []
+max_requests = 1
+pending_requests = 0
 
 handlers = {}
-ws = None
 
 def on(event, callback):
   handlers[event] = callback
 
-async def emit(event, data):
-  await ws.send(json.dumps({'event': event, 'data': data}))
+async def emit(socket, event, data):
+  await socket.send(json.dumps({'event': event, 'data': data}))
+
+def sync_emit(socket, event, data):
+  socket.send(json.dumps({'event': event, 'data': data}))
 
 async def ws_server(websocket, path):
-  global ws
-  ws = websocket
-  print('websocket ' + str(websocket))
-  while True:
-    try:
-      message = json.loads(await ws.recv())
-    except:
-      continue
-    if message['event'] in handlers:
-      if 'data' in message:
-        await handlers[message['event']](message['data'])
-      else:
-        await handlers[message['event']]()
+  try:
+    message = json.loads(await websocket.recv())
+  except:
+    return
+  if message['event'] in handlers:
+    if 'data' in message:
+      await handlers[message['event']](message['data'], websocket)
+    else:
+      await handlers[message['event']](websocket)
 
-async def ping(message):
+async def ping(message, socket):
   print('got ping ' + message)
-  await emit('pong', 'Hello JS')
+  await emit(socket, 'pong', 'Hello JS')
+
+async def request_song(data, socket):
+  global pending_requests
+  global max_requests
+  if pending_requests >= max_requests:
+    queue.append((data, socket))
+    return
+  pending_requests += 1
+  threading.Thread(target=generate_song, args=(data, socket)).start()
 
 on('ping', ping)
+on('song', request_song)
+
+def generate_song(data, socket):
+  global pending_requests
+  data = ''
+  json_string = ''
+  os.chdir('..')
+  try:
+    json_string = main_single.generate_for_server(data['genre'], data['key'], data['instrument'])
+  except Exception as err:
+    print('Exception: ' + str(err))
+  os.chdir('./webapp')
+  data = json.dumps({'song': json_string})
+  print('sending data')
+  sync_emit(socket, 'song', data)
+  time.sleep(1.0)
+  pending_requests -= 1
+  if len(queue) > 0:
+    d, s = queue.pop()
+    threading.Thread(target=generate_song, args=(d, s)).start()
 
 # class HttpHandler(http.server.SimpleHTTPRequestHandler):
 #   def end_headers(self):
