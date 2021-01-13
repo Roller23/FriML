@@ -53,7 +53,10 @@ async def request_song(data, socket):
     await emit(socket, 'queued', len(queue))
     return
   pending_requests += 1
-  threading.Thread(target=generate_song, args=(data, socket)).start()
+  thread = threading.Thread(target=asyncio.run, args=(
+    generate_song(data, socket),
+  ))
+  thread.start()
 
 on('ping', ping)
 on('song', request_song)
@@ -62,13 +65,10 @@ async def generate_song(data, socket):
   global pending_requests
   data = ''
   json_string = ''
-  print('generate song')
-  print(data)
-  print(len(data))
-  print(type(data))
   os.chdir('..')
   try:
-    json_string = main_single.generate_for_server(data['genre'], data['key'], data['instrument'])
+    # json_string = main_single.generate_for_server(data['genre'], data['key'], data['instrument'])
+    json_string = main_single.generate_for_server('rock', 'C', 'piano')
   except Exception as err:
     print('Exception: ' + str(err))
   os.chdir('./webapp')
@@ -78,7 +78,10 @@ async def generate_song(data, socket):
   pending_requests -= 1
   if len(queue) > 0:
     d, s = queue.pop()
-    threading.Thread(target=generate_song, args=(d, s)).start()
+    thread = threading.Thread(target=asyncio.run, args=(
+      generate_song(d, s),
+    ))
+    thread.start()
 
 # class HttpHandler(http.server.SimpleHTTPRequestHandler):
 #   def end_headers(self):
