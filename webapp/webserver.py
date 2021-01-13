@@ -73,22 +73,20 @@ def start_http():
   def data():
     global current_clients
     current_clients += 1
-    q = {
-      'genre': request.args.get('genre'),
-      'key': request.args.get('key'),
-      'instrument': request.args.get('instrument')
-    }
+    genre = request.args.get('genre'),
+    key = request.args.get('key'),
+    instrument = request.args.get('instrument')
     json_string = ''
     os.chdir('..')
     try:
-      json_string = main_single.generate_for_server(q['genre'], q['key'], q['instrument'])
+      json_string = main_single.generate_for_server(genre, key, instrument)
     except Exception as err:
       print('Exception: ' + str(err))
     os.chdir('./webapp')
     print('sending data')
     current_clients -= 1
     return json.dumps({'song': json_string})
-  app.run(host='0.0.0.0', port=port, threaded=True)
+  app.run(host='0.0.0.0', port=port)
 
 def main():
   # delete old generated files
