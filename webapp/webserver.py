@@ -11,10 +11,10 @@ from urllib.parse import urlparse
 from urllib.parse import parse_qs
 from threading import Thread, Lock
 
-mutex = Lock()
-
 sys.path.append('../')
 import main_single
+
+mutex = Lock()
 
 def generate_song(q):
   global mutex
