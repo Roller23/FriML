@@ -21,11 +21,13 @@ def generate_song(q):
   with mutex:
     os.chdir('..')
     json_string = json.dumps([])
+    print('starting generation for ' + q['id'][0])
     try:
       json_string = main_single.generate_for_server(q['genre'][0], q['key'][0], q['instrument'][0])
     except Exception as err:
       print('Exception: ' + str(err))
     os.chdir('./webapp')
+    print('finished generation for ' + q['id'][0])
     gc.collect()
     print('sending data')
     post_data = {'id': q['id'][0], 'song': json_string}
