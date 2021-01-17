@@ -5,6 +5,7 @@ import json
 import os
 import sys
 import glob
+import gc
 from pathlib import Path
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
@@ -18,12 +19,13 @@ import main_single
 def generate_song(q):
   mutex.acquire()
   os.chdir('..')
-  json_string = ''
+  json_string = json.dumps([])
   try:
     json_string = main_single.generate_for_server(q['genre'][0], q['key'][0], q['instrument'][0])
   except Exception as err:
     print('Exception: ' + str(err))
   os.chdir('./webapp')
+  gc.collect()
   data = json.dumps({'song': json_string})
   print('sending data')
   post_data = {'id': q['id'][0], 'song': json_string}
