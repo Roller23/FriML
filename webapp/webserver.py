@@ -18,20 +18,19 @@ import main_single
 
 def generate_song(q):
   global mutex
-  mutex.acquire()
-  os.chdir('..')
-  json_string = json.dumps([])
-  try:
-    json_string = main_single.generate_for_server(q['genre'][0], q['key'][0], q['instrument'][0])
-  except Exception as err:
-    print('Exception: ' + str(err))
-  os.chdir('./webapp')
-  gc.collect()
-  print('sending data')
-  post_data = {'id': q['id'][0], 'song': json_string}
-  requests.post('https://friml-conductor.glitch.me/ready', data=post_data)
-  mutex.release()
-  print('mutex released')
+  with mutex:
+    os.chdir('..')
+    json_string = json.dumps([])
+    try:
+      json_string = main_single.generate_for_server(q['genre'][0], q['key'][0], q['instrument'][0])
+    except Exception as err:
+      print('Exception: ' + str(err))
+    os.chdir('./webapp')
+    gc.collect()
+    print('sending data')
+    post_data = {'id': q['id'][0], 'song': json_string}
+    requests.post('https://friml-conductor.glitch.me/ready', data=post_data)
+    print('mutex released')
 
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
   def end_headers(self):
