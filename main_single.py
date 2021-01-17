@@ -108,7 +108,7 @@ def generate_song(model, network_input, int_to_note, output, length=500):
 
 def generate_for_server(name, key, instrument):
   name = 'rock'
-  length = 500
+  length = 400
   int_to_note, model = load_data(name)
   network_input = []
   for j in range(0, 20):

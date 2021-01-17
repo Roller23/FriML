@@ -26,7 +26,6 @@ def generate_song(q):
     print('Exception: ' + str(err))
   os.chdir('./webapp')
   gc.collect()
-  data = json.dumps({'song': json_string})
   print('sending data')
   post_data = {'id': q['id'][0], 'song': json_string}
   requests.post('https://friml-conductor.glitch.me/ready', data=post_data)
