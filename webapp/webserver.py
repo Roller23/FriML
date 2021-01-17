@@ -17,6 +17,7 @@ sys.path.append('../')
 import main_single
 
 def generate_song(q):
+  global mutex
   mutex.acquire()
   os.chdir('..')
   json_string = json.dumps([])
@@ -30,6 +31,7 @@ def generate_song(q):
   post_data = {'id': q['id'][0], 'song': json_string}
   requests.post('https://friml-conductor.glitch.me/ready', data=post_data)
   mutex.release()
+  print('mutex released')
 
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
   def end_headers(self):
@@ -42,7 +44,9 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
       self.send_header('Content-type', 'text/html')
       self.end_headers()
       q = parse_qs(urlparse(self.path).query)
-      Thread(target=generate_song, args=(q,)).start()
+      thread = Thread(target=generate_song, args=(q,))
+      thread.setDaemon(True)
+      thread.start()
       self.wfile.write(bytes('ok', 'utf8'))
       return
     return http.server.SimpleHTTPRequestHandler.do_GET(self)
