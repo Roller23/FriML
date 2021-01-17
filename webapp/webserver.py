@@ -2,15 +2,33 @@ import http.server
 import socketserver
 import requests
 import json
-from urllib.parse import urlparse
-from urllib.parse import parse_qs
 import os
 import sys
 import glob
 from pathlib import Path
+from urllib.parse import urlparse
+from urllib.parse import parse_qs
+from threading import Thread, Lock
+
+mutex = Lock()
 
 sys.path.append('../')
 import main_single
+
+def generate_song(q):
+  mutex.acquire()
+  os.chdir('..')
+  json_string = ''
+  try:
+    json_string = main_single.generate_for_server(q['genre'][0], q['key'][0], q['instrument'][0])
+  except Exception as err:
+    print('Exception: ' + str(err))
+  os.chdir('./webapp')
+  data = json.dumps({'song': json_string})
+  print('sending data')
+  post_data = {'id': q['id'][0], 'song': json_string}
+  requests.post('https://friml-conductor.glitch.me/ready', data=post_data)
+  mutex.release()
 
 class HttpHandler(http.server.SimpleHTTPRequestHandler):
   def end_headers(self):
@@ -19,23 +37,12 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
   
   def do_GET(self):
     if self.path.startswith('/data'):
-      data = ''
       self.send_response(200)
       self.send_header('Content-type', 'text/html')
       self.end_headers()
       q = parse_qs(urlparse(self.path).query)
-      json_string = ''
-      os.chdir('..')
-      try:
-        json_string = main_single.generate_for_server(q['genre'][0], q['key'][0], q['instrument'][0])
-      except Exception as err:
-        print('Exception: ' + str(err))
-      os.chdir('./webapp')
-      data = json.dumps({'song': json_string})
-      print('sending data')
-      self.wfile.write(bytes(data, 'utf8'))
-      post_data = {'id': '0', 'song': ''}
-      requests.post('https://friml-conductor.glitch.me/ready', data=post_data)
+      Thread(target=generate_song, args=(q,)).start()
+      self.wfile.write(bytes('ok', 'utf8'))
       return
     return http.server.SimpleHTTPRequestHandler.do_GET(self)
     
