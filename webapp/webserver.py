@@ -1,5 +1,6 @@
 import http.server
 import socketserver
+import requests
 import json
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
@@ -41,6 +42,8 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
       data = json.dumps({'song': json_string})
       print('sending data')
       self.wfile.write(bytes(data, 'utf8'))
+      post_data = {'id': '0', 'song': ''}
+      requests.post('https://friml-conductor.glitch.me/ready', post_data)
       return
     return http.server.SimpleHTTPRequestHandler.do_GET(self)
     
