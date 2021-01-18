@@ -54,8 +54,10 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
       thread.start()
       self.wfile.write(bytes('ok', 'utf8'))
       return
-    return http.server.SimpleHTTPRequestHandler.do_GET(self)
-    
+    if self.path.startswith('/outputs'):
+      return http.server.SimpleHTTPRequestHandler.do_GET(self)
+    self.send_response(403)
+    return
 
 def start_http():
   port = int(os.environ.get("PORT", 5000))
