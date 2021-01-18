@@ -56,7 +56,7 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
       return
     if self.path.startswith('/outputs'):
       return http.server.SimpleHTTPRequestHandler.do_GET(self)
-    self.send_response(403)
+    self.send_response(404)
     return
 
 def start_http():
