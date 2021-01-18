@@ -40,7 +40,11 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
     http.server.SimpleHTTPRequestHandler.end_headers(self)
   
   def do_GET(self):
+    global mutex
     if self.path.startswith('/data'):
+      if mutex.locked():
+        self.send_response(403)
+        return
       self.send_response(200)
       self.send_header('Content-type', 'text/html')
       self.end_headers()
