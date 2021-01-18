@@ -6,7 +6,6 @@ import os
 import sys
 import glob
 import gc
-import socket
 from pathlib import Path
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
@@ -42,7 +41,6 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
   
   def do_GET(self):
     if self.path.startswith('/data'):
-      print(socket.gethostbyaddr(self.client_address[0]))
       self.send_response(200)
       self.send_header('Content-type', 'text/html')
       self.end_headers()
