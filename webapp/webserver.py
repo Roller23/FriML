@@ -6,6 +6,7 @@ import os
 import sys
 import glob
 import gc
+import socket
 from pathlib import Path
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
@@ -15,10 +16,6 @@ sys.path.append('../')
 import main_single
 
 mutex = Lock()
-
-def dump(obj):
-  for attr in dir(obj):
-    print("obj.%s = %r" % (attr, getattr(obj, attr)))
 
 def generate_song(q):
   global mutex
@@ -45,7 +42,7 @@ class HttpHandler(http.server.SimpleHTTPRequestHandler):
   
   def do_GET(self):
     if self.path.startswith('/data'):
-      dump(self)
+      print(socket.gethostbyaddr(self.client_address[0]))
       self.send_response(200)
       self.send_header('Content-type', 'text/html')
       self.end_headers()
