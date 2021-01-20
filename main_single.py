@@ -107,7 +107,7 @@ def generate_song(model, network_input, int_to_note, output, length=500):
   utils.generate_midi(prediction_output, output) # convert output to a .mid file
 
 def generate_for_server(name, key, instrument):
-  name = 'rock'
+  # name = 'rock'
   length = 400
   int_to_note, model = load_data(name)
   network_input = []
